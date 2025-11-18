@@ -5,10 +5,12 @@ imgD = im2double(img);
 redChannel   = imgD(:,:,1);
 blueChannel  = imgD(:,:,3);
 
+redChannelAdj = imadjust(redChannel);
+
 % ---------------------
-% Umbral en canal azul para zonas rojizas
-threshold = 0.3;  % Ajustado por formato repetitivo en todas las imágenes
-redAreas = blueChannel < threshold;
+% Umbral en rojo
+threshold = 0.95;  % Ajustado por formato repetitivo en todas las imágenes 
+redAreas = redChannel > threshold;
 
 % ------------------
 % Creamos una máscara que detecta el fondo

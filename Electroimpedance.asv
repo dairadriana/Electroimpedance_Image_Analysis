@@ -7,7 +7,8 @@ blueChannel  = imgD(:,:,3);
 
 % ---------------------
 % Umbral en canal azul para zonas rojizas
-threshold = 0.3;  % Ajustado por formato repetitivo en todas las imágenes
+threshold = 0.3;  % Ajustado por formato repetitivo en todas las imágenes 
+% (0.3 podría funcionar bien)
 redAreas = blueChannel < threshold;
 
 % ------------------
@@ -16,28 +17,24 @@ backgroundMask = (redChannel < 0.05) & (blueChannel < 0.05);
 redAreas(backgroundMask) = false;
 
 % ----------------------
-% Imagen auxiliar: zonas del canal rojo aisladas
+% Z del canal rojo aisladas - de nuestro interés
 isolatedRedAreas = redChannel .* redAreas;
 
-% Mostrar imagen de zonas aisladas (escala de grises)
+% Mostrar imagen de zonas aisladas 
 figure;
 imshow(isolatedRedAreas);
 title('Zonas rojas aisladas (sin fondo)');
 
 % -------------------
 % Visualización en color (superposición)
-% Convertimos la imagen original a uint8 para usar con labeloverlay
-img8 = im2uint8(imgD);
+img8 = im2uint8(imgD); 
+overlayColor = [1 0 1];  % Magenta (lo podemos cambiar)
 
-% Definir color de overlay (puedes cambiarlo)
-overlayColor = [1 0 1];  % Magenta
-
-% Crear overlay sobre la imagen original
 overlayImg = labeloverlay(img8, redAreas, ...
     'Transparency', 0.5, ...
     'Colormap', overlayColor);
 
-% Mostrar resultado
+% Resultado
 figure;
 imshow(overlayImg);
 title('Zonas umbralizadas resaltadas (sin pintar fondo)');
