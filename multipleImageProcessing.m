@@ -1,5 +1,6 @@
 % Ruta de la carpeta
-folder = '...\Images\Prueba';  % <-- Ajusta esta ruta
+folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\Prueba';  % <-- Ajusta esta ruta
+
 prefijo = 'C0683d';
 archivos = dir(fullfile(folder, '*.bmp'));
 
@@ -52,22 +53,19 @@ end
 
 % ------------------------
 % DIFUMINAR BORDES
-inalMask = any(fusionColor > 0, 3);
+finalMask = any(fusionColor > 0, 3);
 
-% Crear máscara difusa como alfa
 alpha = double(finalMask);
-alpha = imdilate(alpha, strel('disk', 2));    % Suaviza borde
-alpha = imgaussfilt(alpha, 2);                % Aplica desenfoque gaussiano
-alpha = min(max(alpha, 0), 1);                % Clipa entre [0,1]
+alpha = imdilate(alpha, strel('disk', 2));      % Expande bordes
+alpha = imgaussfilt(alpha, 2);                  % Suaviza bordes
+alpha = min(max(alpha, 0), 1);                  % Clipa a [0, 1]
 
-% Mezcla fusionada con fondo de N7
+% Mezcla con fondo (imgFinal)
 imgCombinada = imgFinal;
 for c = 1:3
     base = imgFinal(:,:,c);
     inserto = fusionColor(:,:,c);
-    
-    % Evitar bordes negros: solo mezcla donde hay alfa > 0
-    imgCombinada(:,:,c) = inserto .* alpha + base .* (1 - alpha);
+    imgCombinada(:,:,c) = alpha .* inserto + (1 - alpha) .* base;
 end
 
 % Mostrar resultado
