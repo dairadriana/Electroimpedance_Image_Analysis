@@ -1,4 +1,4 @@
-function redDetection(img)
+function redAreas = redDetection(img)
     % img debe ser una imagen RGB (tipo uint8 o double en [0,1])
 
     % Convertir a double si es necesario
@@ -16,7 +16,7 @@ function redDetection(img)
 
     % ---------------------
     % Umbral en rojo
-    threshold = 0.95;  % Ajustado por formato repetitivo en todas las imágenes 
+    threshold = 0.96;  % Ajustado por formato repetitivo en todas las imágenes 
     redAreas = redChannelAdj > threshold;
 
     % ------------------
@@ -25,26 +25,22 @@ function redDetection(img)
     redAreas(backgroundMask) = false;
 
     % ----------------------
-    % Z del canal rojo aisladas - de nuestro interés
-    isolatedRedAreas = redChannel .* redAreas;
-
-    % Mostrar imagen de zonas aisladas 
-    figure;
-    imshow(isolatedRedAreas);
-    title('Zonas rojas aisladas (sin fondo)');
+    % Mostrar imagen de zonas aisladas
+    isolatedRedAreas = redChannelAdj .* redAreas;
+    %figure;
+    %imshow(isolatedRedAreas);
+    %title('Zonas rojas aisladas (sin fondo)');
 
     % -------------------
     % Visualización en color (superposición)
     img8 = im2uint8(imgD); 
-    overlayColor = [1 0 1];  % Magenta (lo podemos cambiar)
+    %overlayColor = [1 0 1];  % Magenta (lo podemos cambiar)
 
-    overlayImg = labeloverlay(img8, redAreas, ...
-        'Transparency', 0.5, ...
-        'Colormap', overlayColor);
+    %overlayImg = labeloverlay(img8, redAreas, ...
+    %    'Transparency', 0.5, ...
+    %    'Colormap', overlayColor);
 
-    % Resultado
-    figure;
-    imshow(overlayImg);
-    title('Zonas umbralizadas resaltadas (sin pintar fondo)');
-    
+    %figure;
+    %imshow(overlayImg);
+    %title('Zonas umbralizadas resaltadas (sin pintar fondo)');
 end
