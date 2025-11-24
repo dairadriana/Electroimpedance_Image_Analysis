@@ -1,14 +1,12 @@
 % Ruta de la carpeta
 folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\Prueba';  % <-- Ajusta esta ruta
 
+% Prefijo y sufijos
 prefijo = 'C0683d';
-archivos = dir(fullfile(folder, '*.bmp'));
+sufijosPermitidos = strcat('_N', string(1:7), '_mask');
 
-% Orden esperado de los archivos
 orden = strcat(prefijo, '_N', string(1:7), '_mask.bmp');
-archivosOrdenados = archivos([]);  % Inicializar como struct vacío
-
-% Ordenar archivos por prioridad
+archivosOrdenados = archivos([]);
 for i = 1:length(orden)
     idx = find(strcmpi({archivos.name}, orden(i)), 1);
     if ~isempty(idx)
@@ -25,25 +23,26 @@ for k = 1:length(archivosOrdenados)
     imgPath = fullfile(folder, nombre);
     img = im2double(imread(imgPath));
 
-    % Establecer N7 como imagen base
+    % Usar N7 como fondo final
     if endsWith(nombre, '_N7_mask.bmp')
         imgFinal = img;
     end
 
-    % Obtener máscara lógica (zonas rojas)
-    mask = redDetection(img);  % Debe retornar una máscara binaria
+    mask = redDetection(img);  % devuelve máscara lógica
 
-    % Inicializar buffers
+    % Inicializar imagen de salida y máscara de ocupación
     if isempty(fusionColor)
         fusionColor = zeros(size(img));
         ocupadoMask = false(size(mask));
     end
 
+    % Calcular los píxeles que aún no han sido asignados
     nuevosPixeles = mask & ~ocupadoMask;
 
+    % Insertar en la imagen final por prioridad
     for c = 1:3
         canal = fusionColor(:,:,c);
-        origen = img(:,:,c);
+        origen = img(:,:,c);  % ← usar variable intermedia
         canal(nuevosPixeles) = origen(nuevosPixeles);
         fusionColor(:,:,c) = canal;
     end
@@ -51,24 +50,17 @@ for k = 1:length(archivosOrdenados)
     ocupadoMask = ocupadoMask | nuevosPixeles;
 end
 
-% ------------------------
-% DIFUMINAR BORDES
+% Combinar sobre la imagen final (N7)
 finalMask = any(fusionColor > 0, 3);
-
-alpha = double(finalMask);
-alpha = imdilate(alpha, strel('disk', 2));      % Expande bordes
-alpha = imgaussfilt(alpha, 2);                  % Suaviza bordes
-alpha = min(max(alpha, 0), 1);                  % Clipa a [0, 1]
-
-% Mezcla con fondo (imgFinal)
 imgCombinada = imgFinal;
 for c = 1:3
-    base = imgFinal(:,:,c);
-    inserto = fusionColor(:,:,c);
-    imgCombinada(:,:,c) = alpha .* inserto + (1 - alpha) .* base;
+    canal = imgFinal(:,:,c);
+    origen = fusionColor(:,:,c);  % variable intermedia
+    canal(finalMask) = origen(finalMask);
+    imgCombinada(:,:,c) = canal;
 end
 
 % Mostrar resultado
 figure;
 imshow(imgCombinada);
-title('Zonas fusionadas con prioridad y bordes difuminados');
+title('Zonas fusionadas (prioridad N1 → N7, color original)');
