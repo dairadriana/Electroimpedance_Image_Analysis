@@ -16,7 +16,7 @@ function redAreas = redDetection(img)
 
     % ---------------------
     % Umbral en rojo
-    threshold = 0.96;  % Ajustado por formato repetitivo en todas las imágenes 
+    threshold = 0.95;  % Ajustado por formato repetitivo en todas las imágenes 
     redAreas = redChannelAdj > threshold;
 
     % ------------------
