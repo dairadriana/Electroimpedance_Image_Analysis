@@ -1,5 +1,8 @@
 % Ruta de la carpeta
-folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\Prueba';  % <-- Ajusta esta ruta
+folder = '/home/ashley/projects/Electroimpedance_Image_Analysis/Images/Prueba';  % <-- Ajusta esta ruta
+
+% Obtener lista de archivos en la carpeta
+archivos = dir(fullfile(folder, '*.bmp'));
 
 % Prefijo y sufijos
 prefijo = 'C0683d';
