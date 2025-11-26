@@ -1,10 +1,10 @@
-# Análisis de Imágenes de Electroimpedancia (EIM) con Optimización por Búsqueda Local
+# Análisis de Imágenes de Electroimpedancia (EIM) con Optimización por Búsqueda Local y Fuerza Bruta
 
-Este proyecto implementa un sistema de análisis de imágenes de electroimpedancia (EIM) que combina procesamiento de imágenes con optimización por búsqueda local. El sistema fusiona máscaras de imágenes que representan diferentes capas de medición electroimpedanciométrica y utiliza búsqueda local para seleccionar la combinación de capas que produce la mejor imagen final.
+Este proyecto implementa un sistema de análisis de imágenes de electroimpedancia (EIM) que combina procesamiento de imágenes con optimización mediante búsqueda local y búsqueda exhaustiva (fuerza bruta). El sistema fusiona máscaras de imágenes que representan diferentes capas de medición electroimpedanciométrica y utiliza algoritmos de optimización para seleccionar la combinación de capas que produce la mejor imagen final.
 
 El proyecto consta de dos componentes principales:
 - **Procesamiento de Imágenes (MATLAB)**: Fusión de máscaras BMP con detección de áreas rojas y priorización de capas.
-- **Optimización por Búsqueda Local (Python)**: Búsqueda local para seleccionar combinaciones de capas N1-N7.
+- **Optimización (Python)**: Búsqueda local y fuerza bruta para seleccionar combinaciones óptimas de capas N1-N7.
 
 ## Descripción General
 
@@ -91,12 +91,15 @@ Implementa la función de aptitud para evaluar calidad de imágenes fusionadas.
 #### `local_search.py`
 Script de búsqueda local para optimización de selección de capas.
 
+#### `find_general_vector.py`
+Script de búsqueda exhaustiva (fuerza bruta) que evalúa todas las 127 combinaciones posibles de capas para encontrar el vector óptimo global.
+
 #### `test_installation.py`
 Script de validación que verifica dependencias y archivos necesarios.
 
-## Componente de Optimización por Búsqueda Local (Python)
+## Componente de Optimización (Python)
 
-El componente Python implementa búsqueda local para determinar qué combinación de capas N1-N7 produce la mejor imagen fusionada. Utiliza un vector binario de 7 bits donde cada bit representa si incluir o no una capa específica.
+El componente Python implementa algoritmos de optimización para determinar qué combinación de capas N1-N7 produce la mejor imagen fusionada. Utiliza un vector binario de 7 bits donde cada bit representa si incluir o no una capa específica. Se incluyen métodos de búsqueda local y búsqueda exhaustiva (fuerza bruta).
 
 ### `evaluate_individual.py`
 Función principal que evalúa un cromosoma binario.
@@ -110,21 +113,22 @@ Función principal que evalúa un cromosoma binario.
 1. Replica la lógica de fusión de `multipleImageProcessing.m` pero solo incluye las capas seleccionadas por el cromosoma
 2. Aplica detección de áreas rojas usando `red_detection()`
 3. Fusiona las capas seleccionadas con prioridad N1→N7
-4. Calcula el fitness de la imagen resultante usando `calcular_fitness()`
+4. Calcula el fitness de la imagen resultante usando métricas de píxeles rojos válidos
 
 **Salidas:**
-- `fitness`: Puntuación numérica de calidad de la imagen fusionada
+- `fitness`: Puntuación numérica de calidad de la imagen fusionada (0.8 * calidad + 0.2 * presencia)
 - `img_combinada`: Imagen RGB final en formato numpy array
 
-### `calcular_fitness.py`
-Calcula la función de aptitud (fitness) de una imagen fusionada.
+### `objective_function.py`
+Implementa la función objetivo para evaluar la calidad de imágenes fusionadas basándose en la proporción de píxeles rojos válidos detectados.
 
 **Métricas utilizadas:**
-- **Entropía**: Mide la información contenida en el canal rojo (histograma de 256 bins)
-- **Desviación estándar**: Evalúa el contraste global de la imagen
-- **Penalización por ruido**: Reduce la puntuación por píxeles dispersos/no conectados
+- **Píxeles detectados totales**: Número total de píxeles identificados como áreas de interés (máscara final)
+- **Píxeles válidos**: Píxeles donde el canal rojo está entre 60/255 y 1, y es mayor que los canales verde y azul
+- **Calidad**: Proporción de píxeles válidos sobre píxeles detectados totales
+- **Presencia**: Puntaje que penaliza cuando hay pocos píxeles válidos (usando un denominador de píxeles válidos + 50)
 
-**Fórmula:** `fitness = w1*entropía + w2*desviación_estándar - w3*ruido`
+**Fórmula:** `fitness = 0.8 * calidad + 0.2 * presencia`
 
 ### `local_search.py`
 Implementa búsqueda local para optimizar la selección de capas.
@@ -140,6 +144,21 @@ Implementa búsqueda local para optimizar la selección de capas.
 - Vector óptimo guardado en formato .mat (compatible con MATLAB)
 - Imagen resultante guardada como PNG
 - Puntuación final impresa en consola
+
+### `find_general_vector.py`
+Implementa búsqueda exhaustiva (fuerza bruta) evaluando todas las 127 combinaciones posibles de capas para encontrar el vector óptimo global.
+
+**Proceso:**
+1. Genera todas las combinaciones posibles de 7 bits (excepto todas ceros)
+2. Para cada combinación, evalúa el fitness promedio sobre múltiples pacientes
+3. Selecciona el vector con mejor fitness promedio, aplicando criterio de parsimonia (menor número de capas activadas en caso de empate)
+4. Guarda resultados detallados por paciente y resúmenes globales
+
+**Salidas:**
+- Archivo .mat del mejor cromosoma global
+- Imagen PNG del resultado óptimo
+- Archivo de resumen con fitness promedio de todas las combinaciones
+- Archivos detallados por paciente con rankings por fitness
 
 ## Conexión entre Componentes
 
@@ -167,26 +186,37 @@ Para cada conjunto de imágenes BMP (N1-N7):
     Generar imagen combinada final
 ```
 
-### Fase 2: Optimización por Búsqueda Local (Python)
+### Fase 2: Optimización (Python)
+#### Búsqueda Local:
 ```pseudocode
 Inicializar vector binario aleatorio (7 bits, al menos uno activado)
-Evaluar fitness del vector inicial usando evaluate_individual()
+Evaluar fitness del vector inicial usando objective_function()
 Mientras no se alcance máximo de iteraciones y haya mejora:
     Generar vecinos (cambiar un bit)
     Para cada vecino:
-        Evaluar fitness usando evaluate_individual()
+        Evaluar fitness usando objective_function()
         Si fitness > mejor_fitness_actual:
             Actualizar mejor_vector y mejor_fitness
             Continuar búsqueda desde este vecino
 Guardar mejor vector encontrado y imagen correspondiente
 ```
 
+#### Búsqueda Exhaustiva (Fuerza Bruta):
+```pseudocode
+Para cada una de las 127 combinaciones posibles (7 bits, al menos uno activado):
+    Evaluar fitness promedio sobre múltiples pacientes usando objective_function()
+    Aplicar criterio de parsimonia para desempates (menor número de capas activadas)
+Seleccionar el vector con mejor fitness promedio global
+Guardar resultados detallados y resúmenes
+```
+
 ### Complementariedad entre Scripts
 
 - **MATLAB** proporciona la lógica base de fusión de imágenes
-- **Python** replica esta lógica en `evaluate_individual.py` para evaluación rápida
-- **Búsqueda local** en `local_search.py` itera sobre combinaciones de capas
-- **Fitness** en `calcular_fitness.py` cuantifica calidad usando métricas de imagen
+- **Python** replica esta lógica en `objective_function.py` para evaluación rápida
+- **Búsqueda local** en `local_search.py` encuentra óptimos locales eficientemente
+- **Búsqueda exhaustiva** en `find_general_vector.py` garantiza el óptimo global evaluando todas las combinaciones
+- **Función objetivo** cuantifica calidad basada en proporción de píxeles rojos válidos
 - Resultado: vector óptimo que selecciona capas para mejor fusión
 
 ## Requisitos del Sistema
@@ -234,6 +264,14 @@ python3 local_search.py --image_folder Images/Prueba --prefix C0683d --out_dir r
 - `--out_dir`: Directorio para guardar resultados
 - `--max_iters`: Máximo de iteraciones (default: 200)
 
+#### Búsqueda Exhaustiva
+Encontrar el vector óptimo global evaluando todas las combinaciones:
+```bash
+python3 find_general_vector.py
+```
+
+**Nota:** El script utiliza configuraciones fijas para carpeta de imágenes (`Images/Prueba`) y prefijos de pacientes. Los resultados se guardan en `results_data_analysis/`.
+
 #### Evaluación Individual
 Probar un cromosoma específico:
 ```bash
@@ -250,11 +288,13 @@ Los resultados se guardan en la carpeta `results/` con archivos `.mat` (cromosom
 - **Áreas rojas**: Zonas de interés detectadas en cada máscara
 - **Fusión**: Combinación de colores originales preservando la prioridad de capas
 
-### Optimización por Búsqueda Local
+### Optimización
 - **Vector binario**: Vector de 7 bits representando selección de capas (1=incluida, 0=excluida)
-- **Fitness**: Puntuación que combina entropía (+), contraste (+) y penalización por ruido (-)
+- **Fitness**: Puntuación basada en proporción de píxeles rojos válidos detectados (0.8 * calidad + 0.2 * presencia)
 - **Mejor vector**: Combinación óptima de capas guardada en `.mat`
 - **Imagen resultante**: Visualización final guardada como `.png`
+- **Búsqueda local**: Encuentra óptimos locales eficientemente
+- **Búsqueda exhaustiva**: Garantiza el óptimo global evaluando todas las combinaciones posibles
 
 Este sistema permite:
 1. Visualizar propiedades electroimpedanciométricas a través de diferentes profundidades
