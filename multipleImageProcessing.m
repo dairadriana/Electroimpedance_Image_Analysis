@@ -1,135 +1,110 @@
-folder = 'C...\Images\Prueba';
+folder = '...\Images\EIM_B4';
+[archivosOrdenados, imgFinal] = obtenerArchivosOrdenados(folder, 'C0793d');
 
-% Obtener archivos
-archivos = dir(fullfile(folder, '*.bmp'));
-prefijo = 'C0683d';
-orden = strcat(prefijo, '_N', string(1:7), '_mask.bmp');
-archivosOrdenados = archivos([]);
 
-for i = 1:length(orden)
-    idx = find(strcmpi({archivos.name}, orden(i)), 1);
-    if ~isempty(idx)
-        archivosOrdenados(end+1) = archivos(idx);
-    end
-end
+fusionColor   = [];
+ocupadoMask   = [];
+etiquetas     = struct('BoundingBox', {}, 'Centroid', {}, 'Layer', {}, 'Area', {});
+maskCombined  = false(size(imgFinal,1), size(imgFinal,2));
 
-fusionColor = [];
-ocupadoMask = [];
-imgFinal = [];
-etiquetas = [];
-
-% Leer imagen base (N7)
-for i = 1:length(archivosOrdenados)
-    if endsWith(archivosOrdenados(i).name, '_N7_mask.bmp')
-        imgFinal = im2double(imread(fullfile(folder, archivosOrdenados(i).name)));
-        break;
-    end
-end
-if isempty(imgFinal)
-    error('Imagen base N7 no encontrada.');
-end
-
-imgSize = size(imgFinal(:,:,1));
-layerMap = zeros(imgSize);  % Para etiquetas
-maskCombined = false(imgSize); % Máscara binaria combinada
-
+% Procesar cada capa
 for k = 1:length(archivosOrdenados)
-    nombre = archivosOrdenados(k).name;
-    imgPath = fullfile(folder, nombre);
-    img = im2double(imread(imgPath));
+    nombre   = archivosOrdenados(k).name;
+    imgPath  = fullfile(folder, nombre);
+    img      = im2double(imread(imgPath));
     layerNum = k;
 
+    % Obtener máscara de detección de zonas de interés
     mask = redDetection(img);
 
+    % Generar resumen si hay regiones detectadas
+    generarResumenRegiones(mask, nombre);   % revisar posible typo: generarResumenRegiones
+
+    % Inicializar fusión en la primera iteración
     if isempty(fusionColor)
-        fusionColor = zeros(size(img));
-        ocupadoMask = false(imgSize);
+        fusionColor = zeros(size(img));            % asegura MxNx3
+        ocupadoMask = false(size(mask));           % MxN lógico
     end
 
     nuevosPixeles = mask & ~ocupadoMask;
 
-    % Detectar regiones en nuevosPixeles
-    CC = bwconncomp(nuevosPixeles);
-    stats = regionprops(CC, 'Area', 'BoundingBox', 'Centroid', 'PixelIdxList');
+    CC2   = bwconncomp(nuevosPixeles);
+    stats2 = regionprops(CC2, 'Area', 'BoundingBox', 'Centroid', 'PixelIdxList');
 
-    for i = 1:numel(stats)
-        pixIdx = stats(i).PixelIdxList;
+    % Ordenar regiones por área descendente
+    areas2   = [stats2.Area];
+    [~, order2] = sort(areas2, 'descend');
+    keepLabel = false(numel(stats2),1);
+    minDist   = 30;  % distancia mínima para evitar etiquetas cercanas
 
-        contenedorPrevio = layerMap(pixIdx);
-        if all(contenedorPrevio > 0)
-            etiqueta = max(contenedorPrevio(:));
-        else
-            etiqueta = layerNum;
+    for ii = 1:numel(stats2)
+        idxReg = order2(ii);
+        cent   = stats2(idxReg).Centroid;
+        tooClose = false;
+        for jj = find(keepLabel)'
+            cent2 = stats2(jj).Centroid;
+            if norm(cent - cent2) < minDist
+                tooClose = true;
+                break;
+            end
         end
+        if ~tooClose
+            keepLabel(idxReg) = true;
+        end
+    end
 
-        layerMap(pixIdx) = etiqueta;
-
-        regionMask = false(imgSize);
+    for ii = find(keepLabel)'
+        pixIdx     = stats2(ii).PixelIdxList;
+        regionMask = false(size(mask));
         regionMask(pixIdx) = true;
 
-        % Añadir a máscara combinada (sin difuminar)
         maskCombined = maskCombined | regionMask;
 
-        % Suavizado interno para fusión a color
-        se = strel('disk', 2);
-        erosion = imerode(regionMask, se);
-        bordeInterno = regionMask & ~erosion;
+        % Preparar transición suave con capas previas
+        seDil       = strel('disk',3);
+        dilNew      = imdilate(regionMask, seDil);
+        dilOld      = imdilate(ocupadoMask, seDil);
+        contactZone = dilNew & dilOld;
 
-        alphaMask = double(regionMask);
-        alphaMask(bordeInterno) = 0.5;
-        alphaSmooth = imgaussfilt(alphaMask, 2);
-        alphaSmooth = min(max(alphaSmooth, 0), 1);
+        distanceMap     = bwdist(~regionMask);
+        maxDist         = 5;
+        transitionMask  = (distanceMap > 0 & distanceMap <= maxDist) & contactZone;
+        w               = zeros(size(mask));
+        w(distanceMap>0 & distanceMap<=maxDist) = distanceMap(distanceMap>0 & distanceMap<=maxDist)/maxDist;
 
+        % Mezcla canal por canal
         for c = 1:3
             origen = img(:,:,c);
             fondo  = imgFinal(:,:,c);
-            fusionVals = origen .* alphaSmooth + fondo .* (1 - alphaSmooth);
+            canal  = fusionColor(:,:,c);
 
-            canal = fusionColor(:,:,c);
-            canal(regionMask) = fusionVals(regionMask);
+            canal(regionMask & ~transitionMask) = origen(regionMask & ~transitionMask);
+            idxTrans = transitionMask;
+            canal(idxTrans) = w(idxTrans).*origen(idxTrans) + (1-w(idxTrans)).*fondo(idxTrans);
+
             fusionColor(:,:,c) = canal;
         end
 
         ocupadoMask = ocupadoMask | regionMask;
 
-        etiquetas(end+1).BoundingBox = stats(i).BoundingBox;
-        etiquetas(end).Centroid = stats(i).Centroid;
-        etiquetas(end).Layer = etiqueta;
+        etiquetas(end+1).BoundingBox = stats2(ii).BoundingBox;
+        etiquetas(end).Centroid     = stats2(ii).Centroid;
+        etiquetas(end).Layer        = layerNum; 
+        etiquetas(end).Area         = stats2(ii).Area; 
     end
 end
 
-% Combinar con fondo para imagen a color
-finalMask = any(fusionColor > 0, 3);
+etiquetas = filtrarEtiquetasPorTamanio(etiquetas, maskCombined, 400);
+
+% Combinar imagen final
+finalMask    = any(fusionColor>0,3);
 imgCombinada = imgFinal;
 for c = 1:3
-    canalBase = imgFinal(:,:,c);
-    canalFus  = fusionColor(:,:,c);
-    canalBase(finalMask) = canalFus(finalMask);
-    imgCombinada(:,:,c) = canalBase;
+    base = imgFinal(:,:,c);
+    fus  = fusionColor(:,:,c);
+    base(finalMask) = fus(finalMask);
+    imgCombinada(:,:,c) = base;
 end
+redChannelAdj = imadjust(imgFinal(:,:,1));
 
-% Mostrar imagen a color con etiquetas
-figure;
-imshow(imgCombinada);
-title('Zonas fusionadas (color) con etiquetas');
-hold on;
-for i = 1:numel(etiquetas)
-    bb = etiquetas(i).BoundingBox;
-    c  = etiquetas(i).Centroid;
-    txt = sprintf('N%d', etiquetas(i).Layer);
-    rectangle('Position', bb, 'EdgeColor', 'g', 'LineWidth', 1.2);
-    text(c(1), c(2), txt, 'Color', 'yellow', 'FontWeight', 'bold', 'FontSize', 9);
-end
-hold off;
-
-% Mostrar imagen binaria de segmentaciones combinadas
-figure;
-imshow(maskCombined);
-title('Máscara binaria de todas las regiones detectadas');
-hold on;
-for i = 1:numel(etiquetas)
-    c   = etiquetas(i).Centroid;
-    txt = sprintf('N%d', etiquetas(i).Layer);
-    text(c(1), c(2), txt, 'Color', 'blue', 'FontWeight', 'bold', 'FontSize', 9);
-end
-hold off;
+mostrarResultados(imgFinal, etiquetas, redChannelAdj, maskCombined);
