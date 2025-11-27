@@ -1,4 +1,4 @@
-folder = '...\Images\EIM_B4';
+folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\EIM_B4';
 [archivosOrdenados, imgFinal] = obtenerArchivosOrdenados(folder, 'C0793d');
 
 
@@ -108,3 +108,9 @@ end
 redChannelAdj = imadjust(imgFinal(:,:,1));
 
 mostrarResultados(imgFinal, etiquetas, redChannelAdj, maskCombined);
+[bestVec, bestScore, tableAll] = searchBestLayerFusion_full(folder, prefix);
+imgFusion = fuseLayersByVector(folder, prefix, bestVec);
+
+% Mostrar
+imshow(imgFusion);
+title('Imagen fusionada por promedio (vector óptimo)');
