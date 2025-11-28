@@ -321,27 +321,27 @@ A continuación se muestran 3 pacientes representativos con los 4 escenarios de 
 
 #### Paciente C0012d (Alto Fitness)
 
-| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
-| Fitness: 0.857 | Fitness: 0.897 | Fitness: 0.812 | Fitness: 0.897 |
-| Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 0 0 0 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
+| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0012d_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
+| Fitness: 0.798 | Fitness: 0.830 | Fitness: 0.857 | Fitness: 0.897 | Fitness: 0.812 | Fitness: 0.897 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 0 0 0 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
 
 #### Paciente C0793i (Muy Alto Fitness)
 
-| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
-| Fitness: 0.880 | Fitness: 0.943 | Fitness: 0.871 | Fitness: 0.943 |
-| Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 0 0 0 0 1 0]` | Cromosoma: `[0 1 1 1 1 1 1]` |
+| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0793i_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
+| Fitness: 0.837 | Fitness: 0.861 | Fitness: 0.880 | Fitness: 0.943 | Fitness: 0.871 | Fitness: 0.943 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 0 0 0 0 1 0]` | Cromosoma: `[0 1 1 1 1 1 1]` |
 
 #### Paciente C0013i (Alto Fitness)
 
-| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
-| Fitness: 0.884 | Fitness: 0.933 | Fitness: 0.884 | Fitness: 0.933 |
-| Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` |
+| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0013i_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
+| Fitness: 0.878 | Fitness: 0.887 | Fitness: 0.884 | Fitness: 0.933 | Fitness: 0.884 | Fitness: 0.933 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` |
 
 ### Tabla Comparativa Completa (15 Pacientes de Validación)
 
