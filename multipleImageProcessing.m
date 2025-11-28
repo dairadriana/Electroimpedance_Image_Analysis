@@ -1,10 +1,10 @@
 %% main_batchFusion.m
 clear; clc; close all;
 
-folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\EIM_B1';
+folder = '...Image_Analysis\Images\EIM_B1';
 
 % Lista de prefixes a procesar:
-prefixList = {''};
+prefixList = {'C0683d', 'C0683i', 'C0685d', 'C0685i', 'C0687d', 'C0699d', 'C0699i', 'C0703d', 'C0703i', 'C0705d'};
 
 % Carpeta general de salida
 outBase = 'resultados_fusion';
