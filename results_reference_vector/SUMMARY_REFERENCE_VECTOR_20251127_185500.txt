@@ -1,0 +1,101 @@
+================================================================================
+REFERENCE VECTOR APPLICATION RESULTS (NO LOCAL SEARCH)
+================================================================================
+
+Reference Vector: [1 0 1 0 0 0 0]
+Validation Patients: ['C0845i', 'C0844i', 'C0012d', 'C0699d', 'C0793i', 'C0013i', 'C0753d', 'C0014d', 'C0015d', 'C0623d', 'C0623i', 'C0674i', 'C0011i', 'C0014i', 'C0806d']
+
+================================================================================
+DETAILED RESULTS
+================================================================================
+
+Patient: C0845i
+  Priority: 0.787713
+  Average:  0.813985
+  Winner:   AVERAGE (Δ = -0.026272)
+
+Patient: C0844i
+  Priority: 0.812670
+  Average:  0.824203
+  Winner:   AVERAGE (Δ = -0.011533)
+
+Patient: C0012d
+  Priority: 0.798067
+  Average:  0.830125
+  Winner:   AVERAGE (Δ = -0.032058)
+
+Patient: C0699d
+  Priority: 0.591501
+  Average:  0.585004
+  Winner:   PRIORITY (Δ = +0.006498)
+
+Patient: C0793i
+  Priority: 0.836884
+  Average:  0.861106
+  Winner:   AVERAGE (Δ = -0.024223)
+
+Patient: C0013i
+  Priority: 0.877656
+  Average:  0.887040
+  Winner:   AVERAGE (Δ = -0.009384)
+
+Patient: C0753d
+  Priority: 0.761728
+  Average:  0.772339
+  Winner:   AVERAGE (Δ = -0.010611)
+
+Patient: C0014d
+  Priority: 0.815749
+  Average:  0.848345
+  Winner:   AVERAGE (Δ = -0.032596)
+
+Patient: C0015d
+  Priority: 0.855936
+  Average:  0.877660
+  Winner:   AVERAGE (Δ = -0.021724)
+
+Patient: C0623d
+  Priority: 0.695362
+  Average:  0.702338
+  Winner:   AVERAGE (Δ = -0.006976)
+
+Patient: C0623i
+  Priority: 0.717559
+  Average:  0.722316
+  Winner:   AVERAGE (Δ = -0.004757)
+
+Patient: C0674i
+  Priority: 0.700154
+  Average:  0.700275
+  Winner:   AVERAGE (Δ = -0.000121)
+
+Patient: C0011i
+  Priority: 0.770816
+  Average:  0.786684
+  Winner:   AVERAGE (Δ = -0.015869)
+
+Patient: C0014i
+  Priority: 0.843767
+  Average:  0.855255
+  Winner:   AVERAGE (Δ = -0.011488)
+
+Patient: C0806d
+  Priority: 0.797507
+  Average:  0.806556
+  Winner:   AVERAGE (Δ = -0.009049)
+
+================================================================================
+STATISTICAL SUMMARY
+================================================================================
+
+Total Patients: 15
+
+Wins:
+  Priority: 1 (6.7%)
+  Average:  14 (93.3%)
+  Ties:     0 (0.0%)
+
+Fitness Statistics:
+  Priority - Mean: 0.777538, Std: 0.072544
+  Average  - Mean: 0.791549, Std: 0.080032
+  Difference Mean: -0.014011

@@ -1,0 +1,22 @@
+Summary of Local Search on Validation Set
+Initial Vector File: results_data_analysis/BEST_GLOBAL_chrom_35patients_20251127_161253.mat
+Time Limit per Patient: 1800s
+
+Validation Patients: ['C0845i', 'C0844i', 'C0012d', 'C0699d', 'C0793i', 'C0013i', 'C0753d', 'C0014d', 'C0015d', 'C0623d', 'C0623i', 'C0674i', 'C0011i', 'C0014i', 'C0806d']
+
+Results:
+  C0845i: 0.829890
+  C0844i: 0.824203
+  C0012d: 0.878752
+  C0699d: 0.585004
+  C0793i: 0.929264
+  C0013i: 0.923678
+  C0753d: 0.786271
+  C0014d: 0.903938
+  C0015d: 0.905660
+  C0623d: 0.765599
+  C0623i: 0.741193
+  C0674i: 0.700275
+  C0011i: 0.789977
+  C0014i: 0.855730
+  C0806d: 0.806556

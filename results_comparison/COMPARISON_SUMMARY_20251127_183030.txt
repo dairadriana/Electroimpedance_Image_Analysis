@@ -1,0 +1,117 @@
+================================================================================
+FUSION METHOD COMPARISON RESULTS
+================================================================================
+
+Initial Vector: [1 0 1 0 0 0 0]
+Time Limit: 5s per patient
+Validation Patients: ['C0845i', 'C0844i', 'C0012d', 'C0699d', 'C0793i', 'C0013i', 'C0753d', 'C0014d', 'C0015d', 'C0623d', 'C0623i', 'C0674i', 'C0011i', 'C0014i', 'C0806d']
+
+================================================================================
+DETAILED RESULTS
+================================================================================
+
+Patient: C0845i
+  Priority: 0.823467 | [0 0 0 0 0 0 1]
+  Average:  0.837491 | [1 1 0 0 0 1 1]
+  Winner:   AVERAGE (Δ = -0.014025)
+  Time:     Priority 0.09s, Average 0.17s
+
+Patient: C0844i
+  Priority: 0.825988 | [1 1 1 0 0 0 0]
+  Average:  0.837117 | [1 1 1 0 0 0 0]
+  Winner:   AVERAGE (Δ = -0.011129)
+  Time:     Priority 0.06s, Average 0.07s
+
+Patient: C0012d
+  Priority: 0.857240 | [0 0 0 0 1 0 0]
+  Average:  0.897322 | [1 1 1 1 1 1 0]
+  Winner:   AVERAGE (Δ = -0.040082)
+  Time:     Priority 0.05s, Average 0.16s
+
+Patient: C0699d
+  Priority: 0.623742 | [1 1 0 0 0 0 0]
+  Average:  0.629163 | [1 1 0 0 0 0 0]
+  Winner:   AVERAGE (Δ = -0.005421)
+  Time:     Priority 0.04s, Average 0.07s
+
+Patient: C0793i
+  Priority: 0.880361 | [0 0 0 0 0 0 1]
+  Average:  0.942587 | [0 1 1 1 1 1 1]
+  Winner:   AVERAGE (Δ = -0.062226)
+  Time:     Priority 0.09s, Average 0.24s
+
+Patient: C0013i
+  Priority: 0.883747 | [1 1 0 0 0 0 0]
+  Average:  0.933374 | [1 0 1 1 1 0 1]
+  Winner:   AVERAGE (Δ = -0.049626)
+  Time:     Priority 0.10s, Average 0.17s
+
+Patient: C0753d
+  Priority: 0.766774 | [1 1 0 0 0 0 1]
+  Average:  0.803373 | [0 0 1 0 0 0 1]
+  Winner:   AVERAGE (Δ = -0.036599)
+  Time:     Priority 0.07s, Average 0.06s
+
+Patient: C0014d
+  Priority: 0.832102 | [1 0 0 0 0 0 0]
+  Average:  0.915343 | [1 1 1 1 1 1 0]
+  Winner:   AVERAGE (Δ = -0.083240)
+  Time:     Priority 0.07s, Average 0.21s
+
+Patient: C0015d
+  Priority: 0.860368 | [1 0 0 0 0 0 1]
+  Average:  0.911870 | [1 0 1 0 1 1 1]
+  Winner:   AVERAGE (Δ = -0.051502)
+  Time:     Priority 0.07s, Average 0.20s
+
+Patient: C0623d
+  Priority: 0.765599 | [0 0 1 0 0 0 0]
+  Average:  0.768484 | [0 0 1 1 0 0 0]
+  Winner:   AVERAGE (Δ = -0.002884)
+  Time:     Priority 0.05s, Average 0.14s
+
+Patient: C0623i
+  Priority: 0.741193 | [0 0 1 0 0 0 0]
+  Average:  0.756485 | [0 1 1 1 0 1 1]
+  Winner:   AVERAGE (Δ = -0.015293)
+  Time:     Priority 0.04s, Average 0.17s
+
+Patient: C0674i
+  Priority: 0.831573 | [0 0 0 1 0 0 0]
+  Average:  0.831573 | [0 0 0 1 0 0 0]
+  Winner:   TIE (Δ = +0.000000)
+  Time:     Priority 0.05s, Average 0.10s
+
+Patient: C0011i
+  Priority: 0.777690 | [1 1 0 0 0 0 0]
+  Average:  0.799280 | [1 1 1 0 1 0 0]
+  Winner:   AVERAGE (Δ = -0.021590)
+  Time:     Priority 0.06s, Average 0.10s
+
+Patient: C0014i
+  Priority: 0.849551 | [1 0 0 0 0 0 0]
+  Average:  0.869891 | [1 1 1 1 1 0 1]
+  Winner:   AVERAGE (Δ = -0.020340)
+  Time:     Priority 0.05s, Average 0.15s
+
+Patient: C0806d
+  Priority: 0.797507 | [1 0 1 0 0 0 0]
+  Average:  0.814414 | [1 1 1 1 1 1 1]
+  Winner:   AVERAGE (Δ = -0.016906)
+  Time:     Priority 0.04s, Average 0.20s
+
+================================================================================
+STATISTICAL SUMMARY
+================================================================================
+
+Total Patients: 15
+
+Wins:
+  Priority: 0 (0.0%)
+  Average:  14 (93.3%)
+  Ties:     1 (6.7%)
+
+Fitness Statistics:
+  Priority - Mean: 0.807794, Std: 0.064553
+  Average  - Mean: 0.836518, Std: 0.079315
+  Difference Mean: -0.028724
