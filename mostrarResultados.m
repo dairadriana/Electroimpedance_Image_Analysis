@@ -17,7 +17,7 @@ function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined)
     % Figura 1: imagen base sin etiquetas
     figure;
     imshow(imgBase);
-    title('Imagen térmica original (sin etiquetas)');
+    title('Imagen resultante fusionada (sin etiquetas)');
 
     % Figura 2: imagen base + overlay mapa de calor + etiquetas
     figure;

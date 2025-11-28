@@ -1,6 +1,6 @@
 folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\EIM_B4';
-[archivosOrdenados, imgFinal] = obtenerArchivosOrdenados(folder, 'C0793d');
-
+[archivosOrdenados, imgFinal] = obtenerArchivosOrdenados(folder, 'C0747d');
+prefix = 'C0747d';
 
 fusionColor   = [];
 ocupadoMask   = [];
@@ -109,8 +109,25 @@ redChannelAdj = imadjust(imgFinal(:,:,1));
 
 mostrarResultados(imgFinal, etiquetas, redChannelAdj, maskCombined);
 [bestVec, bestScore, tableAll] = searchBestLayerFusion_full(folder, prefix);
-imgFusion = fuseLayersByVector(folder, prefix, bestVec);
+% Convertir vector a string legible
+vectorStr = sprintf('Vector: [%s]', num2str(bestVec));
 
-% Mostrar
+weightBrown  = 15;
+weightRed    = 10;
+weightOrange = 7;
+sigmaSmooth  = 4;
+
+imgFusion = fuseWeightedSmooth(folder, prefix, bestVec, ...
+                               weightBrown, weightRed, weightOrange, sigmaSmooth);
+
+% Mostrar imagen fusionada con label del vector
+figure;
 imshow(imgFusion);
-title('Imagen fusionada por promedio (vector óptimo)');
+title('Fusión ponderada - con peso a café/rojo/naranja');
+
+% Añadir texto en la parte inferior izquierda
+text(10, size(imgFusion,1) - 10, vectorStr, ...
+    'Color', 'w', 'FontSize', 12, 'FontWeight', 'bold', ...
+    'BackgroundColor', 'black', 'Margin', 4, ...
+    'Interpreter', 'none', 'VerticalAlignment', 'bottom');
+
