@@ -1,0 +1,1 @@
+python3 compare_fusion_methods.py --initial_vector results_data_analysis/BEST_GLOBAL_chrom_35patients_20251127_161253.mat 
