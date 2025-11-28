@@ -1,21 +1,21 @@
 %% main_batchFusion.m
 clear; clc; close all;
 
-folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\EIM_B5';
+folder = 'C:\Users\tokyo\Desktop\Programming\Electroimpedance_Image_Analysis\Images\EIM_B3';
 
 % Lista de prefixes a procesar:
-prefixList = {''};
+prefixList = {'C0024d', 'C0024i', 'C0030d', 'C0030i', 'C0623d', 'C0623i', 'C0674d', 'C0674i', 'C0692d', 'C0692i', ''};
 
 % Carpeta general de salida
 outBase = 'resultados_fusion';
 if ~exist(outBase,'dir'), mkdir(outBase); end
 
 % Crear CSV
-csvFile = fullfile(outBase,'resultados_EIM_B4.csv');
+csvFile = fullfile(outBase,'resultados_EIM_B5.csv');
 fid = fopen(csvFile,'w');
 fprintf(fid,'Prefix,Score,Vector,ImagenFusionada\n');
 
-csvResumen = fullfile(outBase,'resumen_por_capa.csv');
+csvResumen = fullfile(outBase,'resumen_por_capa_EIM_B5.csv');
 fidResumen = fopen(csvResumen,'w');
 fprintf(fidResumen,'Prefix,Archivo,Resumen\n');
 

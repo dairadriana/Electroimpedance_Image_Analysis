@@ -1,0 +1,11 @@
+Prefix,Score,Vector,ImagenFusionada
+C0011d,4.7415,"1  0  0  1  0  0  0",resultados_fusion\C0011d\C0011d_fusionPonderada.png
+C0011i,4.5105,"1  0  0  0  0  1  0",resultados_fusion\C0011i\C0011i_fusionPonderada.png
+C0012d,4.4594,"1  0  0  1  0  1  0",resultados_fusion\C0012d\C0012d_fusionPonderada.png
+C0012i,4.5396,"1  0  0  1  1  0  0",resultados_fusion\C0012i\C0012i_fusionPonderada.png
+C0013d,3.7997,"1  0  0  1  0  0  1",resultados_fusion\C0013d\C0013d_fusionPonderada.png
+C0013i,3.7070,"1  0  0  1  0  0  1",resultados_fusion\C0013i\C0013i_fusionPonderada.png
+C0014d,4.5763,"1  0  1  0  1  0  0",resultados_fusion\C0014d\C0014d_fusionPonderada.png
+C0014i,4.6255,"1  0  0  1  0  0  0",resultados_fusion\C0014i\C0014i_fusionPonderada.png
+C0015d,4.2877,"1  0  0  0  1  0  1",resultados_fusion\C0015d\C0015d_fusionPonderada.png
+C0015i,4.6332,"1  0  0  0  0  1  1",resultados_fusion\C0015i\C0015i_fusionPonderada.png
