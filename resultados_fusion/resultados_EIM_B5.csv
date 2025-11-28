@@ -1,0 +1,5 @@
+Prefix,Score,Vector,ImagenFusionada
+C0844d,1.5089,"1  0  0  0  0  0  0",resultados_fusion\C0844d\C0844d_fusionPonderada.png
+C0844i,3.3804,"1  0  1  0  0  0  0",resultados_fusion\C0844i\C0844i_fusionPonderada.png
+C0845d,4.7688,"1  0  0  1  0  0  1",resultados_fusion\C0845d\C0845d_fusionPonderada.png
+C0845i,4.7916,"1  0  1  0  1  1  0",resultados_fusion\C0845i\C0845i_fusionPonderada.png

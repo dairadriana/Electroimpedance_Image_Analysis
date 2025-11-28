@@ -1,4 +1,5 @@
-function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined)
+function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined, outDir)
+
     % imgBase       – imagen térmica RGB M×N×3 (colores intactos)
     % etiquetas     – struct array con campos BoundingBox, Centroid, Layer, Area
     % canalInteres  – M×N matriz (por ejemplo canal rojo ajustado)
@@ -18,6 +19,7 @@ function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined)
     figure;
     imshow(imgBase);
     title('Imagen resultante fusionada (sin etiquetas)');
+    saveas(gcf, fullfile(outDir, 'fusionada_segmentacion_sin_etiquetas.png'));
 
     % Figura 2: imagen base + overlay mapa de calor + etiquetas
     figure;
@@ -40,6 +42,7 @@ function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined)
     end
     hold off;
     title('Imagen térmica con overlay de calor y etiquetas');
+    saveas(gcf, fullfile(outDir, 'fusionada_segmentacion_overlay.png'));
 
     % Figura 3: máscara binaria con etiquetas
     figure;
@@ -54,4 +57,5 @@ function mostrarResultados(imgBase, etiquetas, canalInteres, maskCombined)
              'Color', color, 'FontWeight','bold','FontSize',10);
     end
     hold off;
+    saveas(gcf, fullfile(outDir, 'segmentacionBin.png'));
 end
