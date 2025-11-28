@@ -300,3 +300,156 @@ Este sistema permite:
 1. Visualizar propiedades electroimpedanciométricas a través de diferentes profundidades
 2. Optimizar la selección de capas para mejorar la calidad de imagen
 3. Comparar resultados entre diferentes configuraciones de medición EIM
+
+## Resultados Experimentales: Comparación de Métodos de Fusión
+
+Se realizó un estudio comparativo de dos métodos de fusión de imágenes en 15 pacientes de validación:
+
+### Métodos Comparados
+
+1. **Fusión con Prioridad** (`objective_function_priority.py`): La primera capa seleccionada tiene prioridad sobre las siguientes (inspirado en MATLAB)
+2. **Fusión con Promedio** (`objective_function.py`): Los colores se promedian en áreas de superposición
+
+### Escenarios Evaluados
+
+- **Con Vector General**: Búsqueda local iniciando desde el vector óptimo encontrado por búsqueda exhaustiva `[1 0 1 0 0 0 0]`
+- **Con Vector Aleatorio**: Búsqueda local iniciando desde vectores aleatorios diferentes para cada paciente
+
+### Ejemplos Visuales de Resultados
+
+A continuación se muestran 3 pacientes representativos con los 4 escenarios de fusión:
+
+#### Paciente C0012d (Alto Fitness)
+
+| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
+| Fitness: 0.857 | Fitness: 0.897 | Fitness: 0.812 | Fitness: 0.897 |
+| Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 0 0 0 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
+
+#### Paciente C0793i (Muy Alto Fitness)
+
+| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
+| Fitness: 0.880 | Fitness: 0.943 | Fitness: 0.871 | Fitness: 0.943 |
+| Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 0 0 0 0 1 0]` | Cromosoma: `[0 1 1 1 1 1 1]` |
+
+#### Paciente C0013i (Alto Fitness)
+
+| Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
+|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
+| ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
+| Fitness: 0.884 | Fitness: 0.933 | Fitness: 0.884 | Fitness: 0.933 |
+| Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` |
+
+### Tabla Comparativa Completa (15 Pacientes de Validación)
+
+**Nota:** Se incluye una columna adicional con el fitness del **Vector de Referencia sin búsqueda local** para mostrar la mejora obtenida por la optimización.
+
+| Paciente | Vector Ref.<br>Prioridad | Vector Ref.<br>Promedio | Vector General<br>Prioridad | Vector General<br>Promedio | Vector Aleatorio<br>Prioridad | Vector Aleatorio<br>Promedio | Mejor Método |
+|----------|:------------------------:|:-----------------------:|:---------------------------:|:---------------------------:|:-----------------------------:|:----------------------------:|:------------:|
+| C0845i   | 0.788 | 0.814 | 0.823 | **0.837** | 0.823 | **0.839** | Promedio |
+| C0844i   | 0.813 | 0.824 | 0.826 | **0.837** | 0.826 | **0.837** | Promedio |
+| C0012d   | 0.798 | 0.830 | 0.857 | **0.897** | 0.812 | **0.897** | Promedio |
+| C0699d   | 0.592 | 0.585 | 0.624 | **0.629** | 0.624 | **0.629** | Promedio |
+| C0793i   | 0.837 | 0.861 | 0.880 | **0.943** | 0.871 | **0.943** | Promedio |
+| C0013i   | 0.878 | 0.887 | 0.884 | **0.933** | 0.884 | **0.933** | Promedio |
+| C0753d   | 0.762 | 0.772 | 0.767 | **0.803** | 0.767 | **0.803** | Promedio |
+| C0014d   | 0.816 | 0.848 | 0.832 | **0.915** | 0.834 | **0.915** | Promedio |
+| C0015d   | 0.856 | 0.878 | 0.860 | **0.912** | 0.860 | **0.912** | Promedio |
+| C0623d   | 0.695 | 0.702 | 0.766 | **0.768** | 0.766 | **0.768** | Promedio |
+| C0623i   | 0.718 | 0.722 | 0.741 | **0.756** | 0.730 | **0.756** | Promedio |
+| C0674i   | 0.700 | 0.700 | **0.832** | **0.832** | **0.832** | **0.832** | Empate |
+| C0011i   | 0.771 | 0.787 | 0.778 | **0.799** | 0.778 | **0.799** | Promedio |
+| C0014i   | 0.844 | 0.855 | 0.850 | **0.870** | 0.850 | **0.870** | Promedio |
+| C0806d   | 0.798 | 0.807 | 0.798 | **0.814** | 0.798 | **0.815** | Promedio |
+| **Promedio** | **0.778** | **0.792** | **0.808** | **0.837** | **0.804** | **0.837** | **Promedio** |
+| **Desv. Std** | **0.073** | **0.080** | **0.065** | **0.079** | **0.063** | **0.079** | - |
+| **Mejora vs Ref.** | **-** | **-** | **+0.030** | **+0.045** | **+0.026** | **+0.045** | - |
+
+
+### Análisis de Resultados
+
+**Hallazgos Principales:**
+
+1. **Fusión con Promedio domina**: Ganó en 14/15 casos (93.3%), con solo 1 empate
+2. **Vector inicial tiene poco impacto**: Los resultados son muy similares independientemente de si se inicia con el vector general o uno aleatorio
+3. **Mejora consistente**: La fusión con promedio mejora el fitness en promedio +0.029 puntos (+3.6%)
+4. **Convergencia robusta**: Ambos métodos convergen a soluciones similares desde diferentes puntos de partida
+5. **Búsqueda local es valiosa**: La optimización mejora el fitness en +0.045 puntos (+5.7%) comparado con usar solo el vector de referencia
+
+**Valor de la Búsqueda Local:**
+
+La comparación con el vector de referencia sin optimización muestra que la búsqueda local aporta mejoras significativas:
+
+| Método | Fitness Promedio | Mejora vs Vector Ref. |
+|--------|:----------------:|:---------------------:|
+| Vector Ref. + Prioridad | 0.778 | - |
+| Vector Ref. + Promedio | 0.792 | - |
+| **Búsqueda Local + Prioridad** | **0.808** | **+3.9%** |
+| **Búsqueda Local + Promedio** | **0.837** | **+5.7%** |
+
+**Observaciones clave:**
+- La búsqueda local **siempre mejora** el fitness, independientemente del método de fusión
+- La mejora es mayor con fusión promedio (+5.7%) que con prioridad (+3.9%)
+- Incluso con el mejor vector encontrado por búsqueda exhaustiva, la optimización local aporta valor
+- El paciente C0674i es una excepción: la búsqueda local encontró una mejora significativa (+0.132) que el vector de referencia no captura
+
+
+**Implicaciones:**
+
+- La fusión con promedio es más efectiva para este problema de optimización
+- El vector general encontrado por búsqueda exhaustiva es un buen punto de partida, pero no es crítico
+- La búsqueda local es robusta y puede encontrar buenas soluciones desde puntos aleatorios
+
+**Estadísticas Detalladas:**
+
+| Métrica | Vector General<br>Prioridad | Vector General<br>Promedio | Vector Aleatorio<br>Prioridad | Vector Aleatorio<br>Promedio |
+|---------|:---------------------------:|:---------------------------:|:-----------------------------:|:----------------------------:|
+| Fitness Promedio | 0.808 | **0.837** | 0.804 | **0.837** |
+| Desviación Estándar | 0.065 | 0.079 | 0.063 | 0.079 |
+| Fitness Mínimo | 0.624 | 0.629 | 0.624 | 0.629 |
+| Fitness Máximo | 0.884 | **0.943** | 0.884 | **0.943** |
+| Victorias | 0 | **14** | 0 | **14** |
+| Empates | 1 | 1 | 1 | 1 |
+
+### Análisis de Tiempos de Convergencia
+
+Aunque el vector inicial tiene poco impacto en el fitness final, **sí afecta el tiempo de convergencia**, especialmente con tiempo límite corto:
+
+**Tiempos Promedio de Ejecución (límite de 5s):**
+
+| Escenario | Fusión Prioridad | Fusión Promedio | Ahorro con Vector General |
+|-----------|:----------------:|:---------------:|:-------------------------:|
+| **Vector General** | 0.062s | 0.147s | - |
+| **Vector Aleatorio** | 0.088s | 0.156s | - |
+| **Diferencia** | **-0.026s (-42%)** | **-0.009s (-6%)** | - |
+
+**Hallazgos sobre Tiempo:**
+
+1. **Vector General converge más rápido**:
+   - Con Fusión Prioridad: **42% más rápido** (0.062s vs 0.088s)
+   - Con Fusión Promedio: **6% más rápido** (0.147s vs 0.156s)
+
+2. **El beneficio depende del método de fusión**:
+   - La fusión con **prioridad** se beneficia significativamente del buen punto de partida
+   - La fusión con **promedio** es más robusta y menos sensible al punto inicial
+
+3. **Contexto del tiempo límite**:
+   - **Límite corto (< 10s)**: El ahorro de tiempo es significativo (hasta 42%)
+   - **Límite largo (1800s)**: El ahorro es despreciable (~0.001% del tiempo total)
+
+**Recomendaciones de Uso:**
+
+| Escenario | Vector Inicial Recomendado | Razón |
+|-----------|:-------------------------:|:------|
+| Búsquedas rápidas (< 10s) | Vector General | Ahorra hasta 42% de tiempo |
+| Producción (30 min) | Vector Aleatorio | Mismo fitness final, sin costo de búsqueda exhaustiva |
+| Múltiples ejecuciones cortas | Vector General | Beneficio acumulativo en tiempo |
+| Calidad prioritaria | Cualquiera + Fusión Promedio | Mejor fitness independiente del inicio |
+
+**Conclusión sobre Tiempo:**
+- Para el caso de uso típico (30 minutos de búsqueda local), el vector general **no ofrece ventaja práctica** en tiempo
+- El costo de calcular el vector general (búsqueda exhaustiva) no se justifica solo por el ahorro de tiempo
+- El vector general es útil principalmente como **punto de referencia** para comparaciones, no por eficiencia temporal

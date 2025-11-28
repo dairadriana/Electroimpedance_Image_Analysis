@@ -22,6 +22,7 @@ import argparse
 import numpy as np
 import random
 import time
+import glob
 from datetime import datetime
 
 from objective_function import objective_function
@@ -80,7 +81,7 @@ def single_swap(chromosome: np.ndarray, image_folder: str, prefix: str, time_lim
     return x_best, f_best
 
 
-def local_search(image_folder: str, prefix: str, out_dir: str, time_limit: int = 1800):
+def local_search(image_folder: str, prefix: str, out_dir: str, initial_vector_path: str, time_limit: int = 1800):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir, exist_ok=True)
 
@@ -89,14 +90,14 @@ def local_search(image_folder: str, prefix: str, out_dir: str, time_limit: int =
     Ejecuta la búsqueda local con un cromosoma inicial cargado desde archivo, guarda el resultado
     en archivos .mat y .png, e imprime el mejor cromosoma y su fitness.
     """
-    initial_chrom = load_chromosome_mat('results_data_analysis/BEST_GLOBAL_chrom_20251125_224838.mat')
+    initial_chrom = load_chromosome_mat(initial_vector_path)
     print(f'Initial: {initial_chrom}')
 
     best, best_score = single_swap(initial_chrom, image_folder, prefix, time_limit)
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    chrom_path = os.path.join(out_dir, f'best_chrom_{timestamp}.mat')
-    img_path = os.path.join(out_dir, f'best_img_{timestamp}.png')
+    chrom_path = os.path.join(out_dir, f'best_chrom_{prefix}_{timestamp}.mat')
+    img_path = os.path.join(out_dir, f'best_img_{prefix}_{timestamp}.png')
 
     # Guardar cromosoma y la imagen resultante final
     save_chromosome_mat(best, chrom_path)
@@ -113,13 +114,14 @@ def local_search(image_folder: str, prefix: str, out_dir: str, time_limit: int =
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image_folder', type=str, default='/home/ashley/projects/Electroimpedance_Image_Analysis/Images/Prueba')
-    parser.add_argument('--prefix', type=str, default='C0683d')
-    parser.add_argument('--out_dir', type=str, default='results')
+    parser.add_argument('--image_folder', type=str, required=True, help='Path to the folder containing patient images')
+    parser.add_argument('--prefix', type=str, required=True, help='Patient prefix (e.g., C0683d)')
+    parser.add_argument('--out_dir', type=str, default='results_local_search')
+    parser.add_argument('--initial_vector', type=str, required=True, help='Path to .mat file containing the initial chromosome')
     parser.add_argument('--time_limit', type=int, default=1800, help='Time limit in seconds')
     args = parser.parse_args()
 
-    local_search(args.image_folder, args.prefix, args.out_dir, time_limit=args.time_limit)
+    local_search(args.image_folder, args.prefix, args.out_dir, args.initial_vector, time_limit=args.time_limit)
 
 
 if __name__ == '__main__':
