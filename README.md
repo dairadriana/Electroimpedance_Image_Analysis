@@ -8,6 +8,8 @@ El proyecto consta de dos componentes principales:
 
 ## Descripción General
 
+La electroimpedancia (EIM) es una técnica de imagen no invasiva que mide las propiedades eléctricas de los tejidos para detectar anomalías. Su importancia radica en proporcionar información detallada sobre la composición y estructura de los tejidos sin exposición a radiación, lo que la hace valiosa para aplicaciones médicas como el diagnóstico temprano de enfermedades.
+
 El proyecto procesa una serie de imágenes BMP que son máscaras generadas a partir de mediciones de electroimpedancia. Estas máscaras representan diferentes "niveles" o "capas" de medición (N1 a N7), donde cada nivel corresponde a una profundidad o estado diferente en el análisis electroimpedanciométrico.
 
 El objetivo principal es:
@@ -15,162 +17,65 @@ El objetivo principal es:
 2. **Optimizar selección**: Usar búsqueda local para determinar qué combinación de capas produce la mejor imagen final, evaluada mediante métricas de calidad como entropía, contraste y reducción de ruido.
 3. **Generar imagen final**: Producir una imagen combinada que muestre las zonas de interés superpuestas sobre una imagen base (N7).
 
-## Archivos del Proyecto
+En este proyecto, se implementó un sistema que combina procesamiento de imágenes en MATLAB con algoritmos de optimización en Python. Se dividieron los datos en conjuntos de entrenamiento y validación, se obtuvo un vector de referencia mediante búsqueda exhaustiva, y se aplicó búsqueda local para optimizar la selección de capas, evaluando diferentes métodos de fusión para mejorar la calidad de las imágenes resultantes.
 
-### Componente MATLAB
 
-#### `redDetection.m`
-Función que detecta áreas rojas en una imagen RGB.
+## Metodología
 
-**Entradas:**
-- `img`: Imagen RGB en formato uint8 o double (rango [0,1])
+El proyecto siguió una metodología sistemática para optimizar la selección de capas en imágenes de electroimpedancia. Primero, se dividieron los datos en conjuntos de entrenamiento y validación para evaluar el rendimiento de los algoritmos.
 
-**Proceso paso a paso:**
-1. Convierte la imagen a tipo double si es necesario
-2. Extrae los canales rojo (R) y azul (B) de la imagen
-3. Ajusta el contraste del canal rojo usando `imadjust()` para mejorar la detección
-4. Aplica un umbral fijo de 0.96 al canal rojo ajustado para identificar áreas rojas
-5. Crea una máscara de fondo basada en píxeles donde tanto el canal rojo como el azul son menores a 0.05
-6. Elimina las áreas de fondo de la máscara de áreas rojas
-7. (Opcional) Genera visualizaciones de las áreas aisladas y superposiciones coloreadas (comentadas en el código)
+Para obtener un vector de referencia, se realizó una búsqueda exhaustiva (fuerza bruta) evaluando todas las combinaciones posibles de capas.
 
-**Salidas:**
-- `redAreas`: Máscara lógica binaria donde `true` indica píxeles que pertenecen a áreas rojas detectadas
-
-### `multipleImageProcessing.m`
-Script principal que coordina el procesamiento de múltiples imágenes.
-
-**Entradas:**
-- Carpeta que contiene archivos BMP nombrados según el patrón `C0683d_N[1-7]_mask.bmp`
-- Ruta de carpeta configurable (actualmente apuntando a `Images/Prueba/`)
-
-**Proceso paso a paso:**
-
-1. **Configuración inicial:**
-   - Define la ruta de la carpeta de imágenes
-   - Obtiene lista de todos los archivos `.bmp` en la carpeta
-
-2. **Ordenamiento de archivos:**
-   - Define prefijo base (`C0683d`) y sufijos permitidos (`_N1_mask` a `_N7_mask`)
-   - Ordena los archivos encontrados según la secuencia N1 → N7 (prioridad descendente)
-
-3. **Inicialización de variables:**
-   - `fusionColor`: Matriz RGB para almacenar colores fusionados (inicialmente ceros)
-   - `ocupadoMask`: Máscara lógica que rastrea píxeles ya asignados (inicialmente false)
-   - `imgFinal`: Imagen base final (se asigna con N7)
-
-4. **Bucle de procesamiento principal (para cada imagen ordenada):**
-   - Lee la imagen actual usando `imread()` y convierte a double
-   - Si la imagen es N7, la asigna como `imgFinal` (imagen base)
-   - Llama a `redDetection()` para obtener la máscara de áreas rojas
-   - Calcula píxeles nuevos: `mask & ~ocupadoMask` (áreas rojas no asignadas previamente)
-   - Inserta los colores originales de estos píxeles nuevos en `fusionColor`
-   - Actualiza `ocupadoMask` para marcar estos píxeles como ocupados
-
-5. **Fusión final:**
-   - Crea `finalMask` basada en cualquier canal de `fusionColor` > 0
-   - Combina `fusionColor` sobre `imgFinal` usando `finalMask`
-   - El resultado es `imgCombinada`: imagen N7 con colores de capas superiores superpuestos
-
-6. **Visualización:**
-   - Muestra la imagen combinada en una figura MATLAB
-   - Título: "Zonas fusionadas (prioridad N1 → N7, color original)"
-
-**Salidas:**
-- `imgCombinada`: Imagen RGB final fusionada mostrada en pantalla
-- Variables intermedias disponibles en el workspace de MATLAB para análisis adicional
-
-### Componente Python
-
-#### `evaluate_individual.py`
-Función principal de evaluación de cromosomas (detallado en sección de optimización).
-
-#### `calcular_fitness.py`
-Implementa la función de aptitud para evaluar calidad de imágenes fusionadas.
-
-#### `local_search.py`
-Script de búsqueda local para optimización de selección de capas.
-
-#### `find_general_vector.py`
-Script de búsqueda exhaustiva (fuerza bruta) que evalúa todas las 127 combinaciones posibles de capas para encontrar el vector óptimo global.
-
-#### `test_installation.py`
-Script de validación que verifica dependencias y archivos necesarios.
-
-## Componente de Optimización (Python)
-
-El componente Python implementa algoritmos de optimización para determinar qué combinación de capas N1-N7 produce la mejor imagen fusionada. Utiliza un vector binario de 7 bits donde cada bit representa si incluir o no una capa específica. Se incluyen métodos de búsqueda local y búsqueda exhaustiva (fuerza bruta).
-
-### `evaluate_individual.py`
-Función principal que evalúa un cromosoma binario.
-
-**Entradas:**
-- `chromosome`: Vector binario de 7 elementos (0/1) representando selección de capas N1-N7
-- `image_folder`: Carpeta con las imágenes BMP
-- `prefix`: Prefijo del nombre de archivo (ej: 'C0683d')
-
-**Proceso:**
-1. Replica la lógica de fusión de `multipleImageProcessing.m` pero solo incluye las capas seleccionadas por el cromosoma
-2. Aplica detección de áreas rojas usando `red_detection()`
-3. Fusiona las capas seleccionadas con prioridad N1→N7
-4. Calcula el fitness de la imagen resultante usando métricas de píxeles rojos válidos
-
-**Salidas:**
-- `fitness`: Puntuación numérica de calidad de la imagen fusionada (0.8 * calidad + 0.2 * presencia)
-- `img_combinada`: Imagen RGB final en formato numpy array
-
-### `objective_function.py`
-Implementa la función objetivo para evaluar la calidad de imágenes fusionadas basándose en la proporción de píxeles rojos válidos detectados.
-
-**Métricas utilizadas:**
-- **Píxeles detectados totales**: Número total de píxeles identificados como áreas de interés (máscara final)
-- **Píxeles válidos**: Píxeles donde el canal rojo está entre 60/255 y 1, y es mayor que los canales verde y azul
-- **Calidad**: Proporción de píxeles válidos sobre píxeles detectados totales
-- **Presencia**: Puntaje que penaliza cuando hay pocos píxeles válidos (usando un denominador de píxeles válidos + 50)
-
-**Fórmula:** `fitness = 0.8 * calidad + 0.2 * presencia`
-
-### `local_search.py`
-Implementa búsqueda local para optimizar la selección de capas.
-
-**Proceso:**
-1. Inicializa un vector binario aleatorio (con al menos un bit activado)
-2. Evalúa el fitness inicial
-3. Genera vecinos cambiando un bit y evalúa su fitness
-4. Si encuentra un vecino con mejor fitness, continúa desde ese vecino
-5. Repite hasta no encontrar mejoras o alcanzar máximo de iteraciones
-
-**Salidas:**
-- Vector óptimo guardado en formato .mat (compatible con MATLAB)
-- Imagen resultante guardada como PNG
-- Puntuación final impresa en consola
-
-### `find_general_vector.py`
-Implementa búsqueda exhaustiva (fuerza bruta) evaluando todas las 127 combinaciones posibles de capas para encontrar el vector óptimo global.
-
-**Proceso:**
-1. Genera todas las combinaciones posibles de 7 bits (excepto todas ceros)
-2. Para cada combinación, evalúa el fitness promedio sobre múltiples pacientes
-3. Selecciona el vector con mejor fitness promedio, aplicando criterio de parsimonia (menor número de capas activadas en caso de empate)
-4. Guarda resultados detallados por paciente y resúmenes globales
-
-**Salidas:**
-- Archivo .mat del mejor cromosoma global
-- Imagen PNG del resultado óptimo
-- Archivo de resumen con fitness promedio de todas las combinaciones
-- Archivos detallados por paciente con rankings por fitness
-
-## Conexión entre Componentes
+Pseudocódigo para fuerza bruta:
 
 ```
-multipleImageProcessing.m
-    ↓ (llama para cada imagen)
-redDetection.m
-    ↓ (devuelve máscara)
-multipleImageProcessing.m (continúa fusión)
+Para cada combinación binaria de 7 bits (excepto todas ceros):
+    Evaluar fitness promedio sobre pacientes de entrenamiento
+    Seleccionar la combinación con mejor fitness promedio
 ```
 
-El flujo de datos es unidireccional: el script principal itera sobre las imágenes, llama a la función de detección para cada una, y acumula los resultados en las matrices de fusión.
+Luego, se inició la búsqueda local a partir de este vector de referencia.
+
+Pseudocódigo para búsqueda local:
+
+```
+Inicializar con vector de referencia
+Mientras no se alcance máximo de iteraciones y haya mejora:
+    Generar vecino cambiando un bit
+    Evaluar fitness del vecino
+    Si fitness > mejor_fitness:
+        Actualizar mejor_vector y mejor_fitness
+        Continuar desde este vecino
+```
+
+Se utilizaron dos tipos de fusión: prioridad y promedio.
+
+Pseudocódigo para fusión con prioridad:
+
+```
+Para cada capa seleccionada en orden N1→N7:
+    Detectar áreas rojas
+    Para píxeles nuevos (no ocupados):
+        Asignar colores originales
+        Marcar como ocupados
+```
+
+Pseudocódigo para fusión con promedio:
+
+```
+Para cada capa seleccionada:
+    Detectar áreas rojas
+    Para píxeles en áreas rojas:
+        Promediar colores con capas anteriores
+```
+
+Los parámetros utilizados en la búsqueda local incluyen: máximo de iteraciones (200), evaluación de fitness basada en proporción de píxeles rojos válidos.
+
+La función objetivo se define como:
+
+fitness = 0.8 * (píxeles_válidos / píxeles_detectados) + 0.2 * (píxeles_válidos / (píxeles_válidos + 50))
+
+Donde píxeles_válidos son aquellos con canal rojo > verde y azul, y rojo > 60/255.
 
 ## Procedimiento General
 
@@ -321,27 +226,57 @@ A continuación se muestran 3 pacientes representativos con los 4 escenarios de 
 
 #### Paciente C0012d (Alto Fitness)
 
-| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0012d_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
-| Fitness: 0.798 | Fitness: 0.830 | Fitness: 0.857 | Fitness: 0.897 | Fitness: 0.812 | Fitness: 0.897 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 0 0 0 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
+**Fusión con Prioridad**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) |
+| Fitness: 0.798 | Fitness: 0.857 | Fitness: 0.812 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 0 0 0 1 0]` |
+
+**Fusión con Promedio**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/average/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
+| Fitness: 0.830 | Fitness: 0.897 | Fitness: 0.897 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
 
 #### Paciente C0793i (Muy Alto Fitness)
 
-| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0793i_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
-| Fitness: 0.837 | Fitness: 0.861 | Fitness: 0.880 | Fitness: 0.943 | Fitness: 0.871 | Fitness: 0.943 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 0 0 0 0 1 0]` | Cromosoma: `[0 1 1 1 1 1 1]` |
+**Fusión con Prioridad**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) |
+| Fitness: 0.837 | Fitness: 0.880 | Fitness: 0.871 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 0 0 0 0 1 0]` |
+
+**Fusión con Promedio**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/average/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
+| Fitness: 0.861 | Fitness: 0.943 | Fitness: 0.943 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 1 1 1 1 1 1]` |
 
 #### Paciente C0013i (Alto Fitness)
 
-| Vector Ref. + Prioridad | Vector Ref. + Promedio | Vector General + Prioridad | Vector General + Promedio | Vector Aleatorio + Prioridad | Vector Aleatorio + Promedio |
-|:-----------------------:|:-----------------------:|:-------------------------:|:-------------------------:|:---------------------------:|:---------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0013i_20251127_185500.png) | ![](results_reference_vector/average/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
-| Fitness: 0.878 | Fitness: 0.887 | Fitness: 0.884 | Fitness: 0.933 | Fitness: 0.884 | Fitness: 0.933 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` |
+**Fusión con Prioridad**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/priority/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) |
+| Fitness: 0.878 | Fitness: 0.884 | Fitness: 0.884 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` |
+
+**Fusión con Promedio**
+
+| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
+|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
+| ![](results_reference_vector/average/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
+| Fitness: 0.887 | Fitness: 0.933 | Fitness: 0.933 |
+| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 0 1 1 1 0 1]` |
 
 ### Tabla Comparativa Completa (15 Pacientes de Validación)
 
