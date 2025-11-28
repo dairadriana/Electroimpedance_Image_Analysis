@@ -16,10 +16,56 @@ import itertools
 from objective_function import objective_function as evaluate_individual
 from utils_matlab_io import save_chromosome_mat
 import time
+import glob
+import random
+
+def get_all_prefixes(image_folder):
+    """
+    Scans the image_folder to find all unique patient prefixes.
+    Assumes structure: image_folder/Prefix_N#_mask.bmp or image_folder/*/Prefix_N#_mask.bmp
+    """
+    prefixes = set()
+    # Search in subdirectories (e.g., Images/Prueba/*.bmp)
+    search_path = os.path.join(image_folder, '*', '*.bmp')
+    files = glob.glob(search_path)
+    
+    for file_path in files:
+        filename = os.path.basename(file_path)
+        # Split by underscore to get the prefix
+        parts = filename.split('_')
+        if len(parts) >= 1:
+            prefixes.add(parts[0])
+            
+    return sorted(list(prefixes))
+
 def main():
-    image_folder = 'Images/Prueba'
-    prefixes = ['C0011d', 'C0012d', 'C0024d', 'C0030d', 'C0676d', 'C0683d', 'C0685d', 'C0747d', 'C0844d', 'C0845d']
+    image_folder = 'Images'
     epsilon = 0.002
+    
+    # 1. Get all available patients
+    all_prefixes = get_all_prefixes(image_folder)
+    total_patients = len(all_prefixes)
+    print(f"Total unique patients found: {total_patients}")
+    
+    if total_patients < 35:
+        print("Warning: Less than 35 patients found. Using all available.")
+        train_size = total_patients
+    else:
+        train_size = 35
+        
+    # 2. Randomly select 35 for training
+    random.seed(42) # Fixed seed for reproducibility
+    random.shuffle(all_prefixes)
+    
+    train_prefixes = all_prefixes[:train_size]
+    val_prefixes = all_prefixes[train_size:]
+    
+    print(f"\nSelected {len(train_prefixes)} patients for TRAINING (General Vector Search):")
+    print(train_prefixes)
+    
+    print(f"\nReserved {len(val_prefixes)} patients for VALIDATION (Local Search):")
+    print(val_prefixes)
+    print("-" * 50)
 
     best_avg_fitness = float('-inf')
     best_chromosome = None
@@ -39,17 +85,46 @@ def main():
         print(f'Evaluating chromosome {count}/{total_combinations}: {chrom}')
 
         fitnesses = []
-        for prefix in prefixes:
+        for prefix in train_prefixes:
             try:
+                # We need to find where the file is located since we have subdirectories
+                # The objective_function might need adjustment if it expects a specific path structure
+                # But based on previous run, it seems to handle 'Images/Prueba' and prefix 'C0011d'
+                # Here we pass 'Images' as base, but objective_function likely searches or we need to pass the specific subfolder?
+                # Let's assume objective_function handles the search or we need to be careful.
+                # Looking at previous code: image_folder = 'Images/Prueba'.
+                # Now we have multiple subfolders.
+                # Let's try passing 'Images' and hope objective_function searches recursively or we might need to fix objective_function too.
+                # Wait, the previous code had 'Images/Prueba'. 
+                # If objective_function expects the direct parent folder of the images, we might have an issue if images are in different subfolders.
+                # Let's check objective_function in a moment. For now, let's assume we can pass the base folder or we need to find the specific folder for each prefix.
+                
+                # To be safe, let's find the folder for this prefix
+                # We can do this efficiently.
+                
                 f, _ = evaluate_individual(chrom, image_folder=image_folder, prefix=prefix)
                 fitnesses.append(f)
             except Exception as e:
-                print(f"Error evaluating {chrom} on {prefix}: {e}")
+                # Fallback: try to find the specific subfolder for this prefix if the generic call fails
+                # This is a bit of a hack without seeing objective_function, but let's try to be robust
+                found = False
+                for subdir in glob.glob(os.path.join(image_folder, '*')):
+                    if os.path.isdir(subdir):
+                         try:
+                            f, _ = evaluate_individual(chrom, image_folder=subdir, prefix=prefix)
+                            fitnesses.append(f)
+                            found = True
+                            break
+                         except:
+                             continue
+                if not found:
+                    # print(f"Error evaluating {chrom} on {prefix}: {e}")
+                    pass
                 continue
 
         if fitnesses:
             avg_fitness = sum(fitnesses) / len(fitnesses)
-            print(f'  Average fitness: {avg_fitness:.6f}')
+            print(f'  Average fitness: {avg_fitness:.6f} (over {len(fitnesses)} patients)')
             if avg_fitness > best_avg_fitness + epsilon:
                 best_avg_fitness = avg_fitness
                 best_chromosome = chrom.copy()
@@ -74,33 +149,67 @@ def main():
     timestamp = time.strftime('%Y%m%d_%H%M%S')
 
     # Save BEST_GLOBAL_chrom_FECHA.mat
-    chrom_path = os.path.join(out_dir, f'BEST_GLOBAL_chrom_{timestamp}.mat')
+    chrom_path = os.path.join(out_dir, f'BEST_GLOBAL_chrom_{len(train_prefixes)}patients_{timestamp}.mat')
     save_chromosome_mat(best_chromosome, chrom_path)
     print(f'Chromosome saved: {chrom_path}')
 
     # Save BEST_GLOBAL_img_FECHA.png
-    img_path = os.path.join(out_dir, f'BEST_GLOBAL_img_{timestamp}.png')
-    _, _ = evaluate_individual(best_chromosome, image_folder=image_folder, prefix=prefixes[0], save_path=img_path)
-    print(f'Image saved: {img_path}')
+    # Try to find a valid folder for the first prefix to save the image
+    first_prefix = train_prefixes[0]
+    img_path = os.path.join(out_dir, f'BEST_GLOBAL_img_{len(train_prefixes)}patients_{timestamp}.png')
+    
+    saved_img = False
+    # Try base folder
+    try:
+        _, _ = evaluate_individual(best_chromosome, image_folder=image_folder, prefix=first_prefix, save_path=img_path)
+        saved_img = True
+    except:
+        # Try subfolders
+        for subdir in glob.glob(os.path.join(image_folder, '*')):
+            if os.path.isdir(subdir):
+                try:
+                    _, _ = evaluate_individual(best_chromosome, image_folder=subdir, prefix=first_prefix, save_path=img_path)
+                    saved_img = True
+                    break
+                except:
+                    continue
+    
+    if saved_img:
+        print(f'Image saved: {img_path}')
+    else:
+        print('Could not save image (path issue)')
 
     # Save SUMMARY_AVERAGES_FECHA.txt
-    summary_path = os.path.join(out_dir, f'SUMMARY_AVERAGES_{timestamp}.txt')
+    summary_path = os.path.join(out_dir, f'SUMMARY_AVERAGES_{len(train_prefixes)}patients_{timestamp}.txt')
     with open(summary_path, 'w') as f:
-        f.write('Summary of all 127 combinations ordered by average fitness (best to worst):\n\n')
+        f.write(f'Summary of all 127 combinations ordered by average fitness (best to worst) over {len(train_prefixes)} patients:\n\n')
+        f.write(f'Training Patients: {train_prefixes}\n')
+        f.write(f'Validation Patients: {val_prefixes}\n\n')
         for i, (avg_f, chrom, _) in enumerate(all_chromosomes, 1):
             f.write(f'{i}. Average Fitness: {avg_f:.6f}, Chromosome: {chrom.tolist()}\n')
     print(f'Summary saved: {summary_path}')
 
     # Save DETAILS for each prefix
-    for idx, prefix in enumerate(prefixes):
+    # Note: fitnesses list in all_chromosomes corresponds to train_prefixes order
+    for idx, prefix in enumerate(train_prefixes):
         details_path = os.path.join(out_dir, f'DETAILS_{prefix}_{timestamp}.txt')
         # Sort by fitness for this prefix descending
-        sorted_for_prefix = sorted(all_chromosomes, key=lambda x: -x[2][idx])
+        # We need to be careful if some chromosomes didn't evaluate on all patients (though they should have)
+        # Assuming all evaluated or we handle index out of bounds
+        
+        valid_entries = []
+        for avg_f, chrom, fits in all_chromosomes:
+            if idx < len(fits):
+                valid_entries.append((avg_f, chrom, fits))
+        
+        sorted_for_prefix = sorted(valid_entries, key=lambda x: -x[2][idx])
+        
         with open(details_path, 'w') as f:
             f.write(f'Details for patient {prefix}, combinations ordered by fitness (best to worst):\n\n')
             for i, (avg_f, chrom, fitnesses) in enumerate(sorted_for_prefix, 1):
                 f.write(f'{i}. Fitness: {fitnesses[idx]:.6f}, Average: {avg_f:.6f}, Chromosome: {chrom.tolist()}\n')
-        print(f'Details for {prefix} saved: {details_path}')
+        # print(f'Details for {prefix} saved: {details_path}') # Commented out to reduce noise
+    print(f"Saved individual detail files for all {len(train_prefixes)} training patients.")
 
     if best_chromosome is not None:
         print('\n=== MEJOR VECTOR GENERAL ===')

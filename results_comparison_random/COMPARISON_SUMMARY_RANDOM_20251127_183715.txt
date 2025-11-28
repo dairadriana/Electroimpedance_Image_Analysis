@@ -1,0 +1,132 @@
+================================================================================
+FUSION METHOD COMPARISON RESULTS (RANDOM START)
+================================================================================
+
+Random Seed: 123
+Time Limit: 5s per patient
+Validation Patients: ['C0845i', 'C0844i', 'C0012d', 'C0699d', 'C0793i', 'C0013i', 'C0753d', 'C0014d', 'C0015d', 'C0623d', 'C0623i', 'C0674i', 'C0011i', 'C0014i', 'C0806d']
+
+================================================================================
+DETAILED RESULTS
+================================================================================
+
+Patient: C0845i
+  Initial:  [0 1 0 0 0 0 0]
+  Priority: 0.823467 | [0 0 0 0 0 0 1]
+  Average:  0.839188 | [1 1 1 0 0 0 1]
+  Winner:   AVERAGE (Δ = -0.015722)
+  Time:     Priority 0.07s, Average 0.13s
+
+Patient: C0844i
+  Initial:  [1 1 0 1 1 0 1]
+  Priority: 0.825988 | [1 1 1 0 0 0 0]
+  Average:  0.837117 | [1 1 1 0 0 0 0]
+  Winner:   AVERAGE (Δ = -0.011129)
+  Time:     Priority 0.09s, Average 0.10s
+
+Patient: C0012d
+  Initial:  [0 1 0 1 1 0 0]
+  Priority: 0.811670 | [1 1 0 0 0 1 0]
+  Average:  0.897322 | [1 1 1 1 1 1 0]
+  Winner:   AVERAGE (Δ = -0.085652)
+  Time:     Priority 0.12s, Average 0.23s
+
+Patient: C0699d
+  Initial:  [0 1 1 1 0 1 0]
+  Priority: 0.623742 | [1 1 0 0 0 0 0]
+  Average:  0.629163 | [1 1 0 0 0 0 0]
+  Winner:   AVERAGE (Δ = -0.005421)
+  Time:     Priority 0.09s, Average 0.10s
+
+Patient: C0793i
+  Initial:  [0 0 0 1 1 1 0]
+  Priority: 0.871481 | [0 0 0 0 0 1 0]
+  Average:  0.942587 | [0 1 1 1 1 1 1]
+  Winner:   AVERAGE (Δ = -0.071106)
+  Time:     Priority 0.07s, Average 0.25s
+
+Patient: C0013i
+  Initial:  [0 1 0 0 1 0 1]
+  Priority: 0.883747 | [1 1 0 0 0 0 0]
+  Average:  0.933374 | [1 0 1 1 1 0 1]
+  Winner:   AVERAGE (Δ = -0.049626)
+  Time:     Priority 0.06s, Average 0.24s
+
+Patient: C0753d
+  Initial:  [0 1 1 1 0 0 0]
+  Priority: 0.766774 | [1 1 0 0 0 0 1]
+  Average:  0.803373 | [0 0 1 0 0 0 1]
+  Winner:   AVERAGE (Δ = -0.036599)
+  Time:     Priority 0.06s, Average 0.06s
+
+Patient: C0014d
+  Initial:  [0 1 1 0 0 1 0]
+  Priority: 0.834414 | [0 0 0 0 1 0 0]
+  Average:  0.915343 | [1 1 1 1 1 1 0]
+  Winner:   AVERAGE (Δ = -0.080929)
+  Time:     Priority 0.11s, Average 0.17s
+
+Patient: C0015d
+  Initial:  [1 0 0 1 0 1 0]
+  Priority: 0.860368 | [1 0 0 0 0 0 1]
+  Average:  0.911870 | [1 0 1 0 1 1 1]
+  Winner:   AVERAGE (Δ = -0.051502)
+  Time:     Priority 0.10s, Average 0.20s
+
+Patient: C0623d
+  Initial:  [1 0 0 0 0 1 0]
+  Priority: 0.765599 | [0 0 1 0 0 0 0]
+  Average:  0.768484 | [0 0 1 1 0 0 0]
+  Winner:   AVERAGE (Δ = -0.002884)
+  Time:     Priority 0.12s, Average 0.18s
+
+Patient: C0623i
+  Initial:  [0 1 1 1 1 0 0]
+  Priority: 0.729592 | [0 1 0 0 0 0 0]
+  Average:  0.756485 | [0 1 1 1 0 1 1]
+  Winner:   AVERAGE (Δ = -0.026893)
+  Time:     Priority 0.07s, Average 0.12s
+
+Patient: C0674i
+  Initial:  [0 0 1 1 0 0 0]
+  Priority: 0.831573 | [0 0 0 1 0 0 0]
+  Average:  0.831573 | [0 0 0 1 0 0 0]
+  Winner:   TIE (Δ = +0.000000)
+  Time:     Priority 0.04s, Average 0.11s
+
+Patient: C0011i
+  Initial:  [0 1 0 1 1 0 1]
+  Priority: 0.777690 | [1 1 0 0 0 0 0]
+  Average:  0.799280 | [1 1 1 0 1 0 0]
+  Winner:   AVERAGE (Δ = -0.021590)
+  Time:     Priority 0.10s, Average 0.11s
+
+Patient: C0014i
+  Initial:  [1 1 0 1 1 1 0]
+  Priority: 0.849551 | [1 0 0 0 0 0 0]
+  Average:  0.869891 | [1 1 1 1 1 0 1]
+  Winner:   AVERAGE (Δ = -0.020340)
+  Time:     Priority 0.14s, Average 0.17s
+
+Patient: C0806d
+  Initial:  [0 0 1 0 0 1 1]
+  Priority: 0.797507 | [1 0 1 0 0 0 0]
+  Average:  0.815255 | [0 1 1 1 0 1 0]
+  Winner:   AVERAGE (Δ = -0.017748)
+  Time:     Priority 0.08s, Average 0.17s
+
+================================================================================
+STATISTICAL SUMMARY
+================================================================================
+
+Total Patients: 15
+
+Wins:
+  Priority: 0 (0.0%)
+  Average:  14 (93.3%)
+  Ties:     1 (6.7%)
+
+Fitness Statistics:
+  Priority - Mean: 0.803544, Std: 0.063452
+  Average  - Mean: 0.836687, Std: 0.079302
+  Difference Mean: -0.033143
