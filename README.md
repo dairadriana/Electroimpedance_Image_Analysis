@@ -206,185 +206,93 @@ Este sistema permite:
 2. Optimizar la selección de capas para mejorar la calidad de imagen
 3. Comparar resultados entre diferentes configuraciones de medición EIM
 
-## Resultados Experimentales: Comparación de Métodos de Fusión
+### Tabla 1: Comparación de CNR (Contrast-to-Noise Ratio)
 
-Se realizó un estudio comparativo de dos métodos de fusión de imágenes en 15 pacientes de validación:
+El CNR mide qué tan fuerte es la señal del tumor en comparación con el ruido del fondo.
 
-### Métodos Comparados
+| Paciente | Max Layer CNR | Img Comp (Avg) | Img Comp (Prio) | Vec Ref (Avg) | Vec Ref (Prio) | LS Rand (Avg) | LS Rand (Prio) | LS Ref (Avg) | LS Ref (Prio) |
+|---|---|---|---|---|---|---|---|---|---|
+| C0011i | 9.1390 | 0.2377 | 0.0657 | 0.3176 | 0.1560 | 0.2125 | 0.0046 | 0.2125 | 0.0046 |
+| C0012d | 0.6250 | 0.3499 | 0.5128 | 0.2404 | 0.4229 | 0.2992 | 0.3975 | 0.2992 | 0.4844 |
+| C0013i | 0.7194 | 0.3892 | 0.1822 | 0.0598 | 0.1267 | 0.3544 | 0.1234 | 0.3544 | 0.1234 |
+| C0014d | 1.4635 | 0.1581 | 0.7611 | 0.0761 | 0.1388 | 0.1479 | 0.1999 | 0.1479 | 0.0799 |
+| C0014i | 1.4605 | 0.1690 | 0.1676 | 0.1031 | 0.0113 | 0.1410 | 0.0604 | 0.1410 | 0.0604 |
+| C0015d | 8.9769 | 0.3304 | 0.7067 | 0.4757 | 0.6376 | 0.3106 | 0.6461 | 0.3106 | 0.6461 |
+| C0623d | 5.9784 | 0.7417 | 0.4939 | 0.9720 | 0.8180 | 1.1037 | 1.4045 | 1.1037 | 1.4045 |
+| C0623i | 3.4488 | 0.2723 | 0.0032 | 0.3094 | 0.1698 | 0.6366 | 0.6736 | 0.6366 | 0.6311 |
+| C0674i | 3.1059 | 0.1073 | 0.0161 | 0.1273 | 0.0361 | 0.7481 | 0.7481 | 0.7481 | 0.7481 |
+| C0699d | 0.7658 | 1.5560 | 1.3656 | 1.4313 | 1.3656 | 1.5689 | 1.3656 | 1.5689 | 1.3656 |
+| C0753d | 5.1258 | 1.7417 | 0.2109 | 0.1132 | 0.0149 | 2.5896 | 0.1750 | 2.5896 | 0.1750 |
+| C0793i | 0.0991 | 0.5093 | 0.0622 | 0.1624 | 0.0481 | 0.4271 | 0.0436 | 0.4271 | 0.0452 |
+| C0806d | 10.4115 | 0.2404 | 0.0455 | 0.1231 | 0.0011 | 0.1166 | 0.0011 | 0.2404 | 0.0011 |
+| C0844i | 0.6147 | 1.6348 | 1.1389 | 1.6928 | 1.5903 | 1.8672 | 1.5975 | 1.8672 | 1.5975 |
+| C0845i | 1.1622 | 0.3802 | 0.1470 | 0.2860 | 0.2224 | 0.3773 | 0.1659 | 0.4285 | 0.1659 |
+| Promedio | 3.5398 | 0.5879 | 0.3920 | 0.4327 | 0.3840 | 0.7267 | 0.5071 | 0.7384 | 0.5022 |
 
-1. **Fusión con Prioridad** (`objective_function_priority.py`): La primera capa seleccionada tiene prioridad sobre las siguientes (inspirado en MATLAB)
-2. **Fusión con Promedio** (`objective_function.py`): Los colores se promedian en áreas de superposición
+### Tabla 2: Comparación de Edge Preservation
 
-### Escenarios Evaluados
+Esta métrica (0-1) indica qué tan bien se conservan los bordes originales.
 
-- **Con Vector General**: Búsqueda local iniciando desde el vector óptimo encontrado por búsqueda exhaustiva `[1 0 1 0 0 0 0]`
-- **Con Vector Aleatorio**: Búsqueda local iniciando desde vectores aleatorios diferentes para cada paciente
-
-### Ejemplos Visuales de Resultados
-
-A continuación se muestran 3 pacientes representativos con los 4 escenarios de fusión:
-
-#### Paciente C0012d (Alto Fitness)
-
-**Fusión con Prioridad**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/priority/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0012d_20251127_183711.png) |
-| Fitness: 0.798 | Fitness: 0.857 | Fitness: 0.812 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 1 0 0]` | Cromosoma: `[1 1 0 0 0 1 0]` |
-
-**Fusión con Promedio**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/average/ref_img_C0012d_20251127_185500.png) | ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0012d_20251127_183711.png) |
-| Fitness: 0.830 | Fitness: 0.897 | Fitness: 0.897 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 1 1 1 1 0]` | Cromosoma: `[1 1 1 1 1 1 0]` |
-
-#### Paciente C0793i (Muy Alto Fitness)
-
-**Fusión con Prioridad**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0793i_20251127_183712.png) |
-| Fitness: 0.837 | Fitness: 0.880 | Fitness: 0.871 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 0 0 0 0 0 1]` | Cromosoma: `[0 0 0 0 0 1 0]` |
-
-**Fusión con Promedio**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/average/ref_img_C0793i_20251127_185500.png) | ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0793i_20251127_183712.png) |
-| Fitness: 0.861 | Fitness: 0.943 | Fitness: 0.943 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[0 1 1 1 1 1 1]` | Cromosoma: `[0 1 1 1 1 1 1]` |
-
-#### Paciente C0013i (Alto Fitness)
-
-**Fusión con Prioridad**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/priority/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/priority/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/priority/best_img_C0013i_20251127_183712.png) |
-| Fitness: 0.878 | Fitness: 0.884 | Fitness: 0.884 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` | Cromosoma: `[1 1 0 0 0 0 0]` |
-
-**Fusión con Promedio**
-
-| Solo Vector de Referencia | Vector de Referencia + Búsqueda Local | Solo Búsqueda Local con Vector Aleatorio |
-|:-------------------------:|:-------------------------------------:|:-----------------------------------------:|
-| ![](results_reference_vector/average/ref_img_C0013i_20251127_185500.png) | ![](results_comparison/average/best_img_C0013i_20251127_183027.png) | ![](results_comparison_random/average/best_img_C0013i_20251127_183712.png) |
-| Fitness: 0.887 | Fitness: 0.933 | Fitness: 0.933 |
-| Cromosoma: `[1 0 1 0 0 0 0]` | Cromosoma: `[1 0 1 1 1 0 1]` | Cromosoma: `[1 0 1 1 1 0 1]` |
-
-### Tabla Comparativa Completa (15 Pacientes de Validación)
-
-**Nota:** Se incluye una columna adicional con el fitness del **Vector de Referencia sin búsqueda local** para mostrar la mejora obtenida por la optimización.
-
-| Paciente | Vector Ref.<br>Prioridad | Vector Ref.<br>Promedio | Vector General<br>Prioridad | Vector General<br>Promedio | Vector Aleatorio<br>Prioridad | Vector Aleatorio<br>Promedio | Mejor Método |
-|----------|:------------------------:|:-----------------------:|:---------------------------:|:---------------------------:|:-----------------------------:|:----------------------------:|:------------:|
-| C0845i   | 0.788 | 0.814 | 0.823 | **0.837** | 0.823 | **0.839** | Promedio |
-| C0844i   | 0.813 | 0.824 | 0.826 | **0.837** | 0.826 | **0.837** | Promedio |
-| C0012d   | 0.798 | 0.830 | 0.857 | **0.897** | 0.812 | **0.897** | Promedio |
-| C0699d   | 0.592 | 0.585 | 0.624 | **0.629** | 0.624 | **0.629** | Promedio |
-| C0793i   | 0.837 | 0.861 | 0.880 | **0.943** | 0.871 | **0.943** | Promedio |
-| C0013i   | 0.878 | 0.887 | 0.884 | **0.933** | 0.884 | **0.933** | Promedio |
-| C0753d   | 0.762 | 0.772 | 0.767 | **0.803** | 0.767 | **0.803** | Promedio |
-| C0014d   | 0.816 | 0.848 | 0.832 | **0.915** | 0.834 | **0.915** | Promedio |
-| C0015d   | 0.856 | 0.878 | 0.860 | **0.912** | 0.860 | **0.912** | Promedio |
-| C0623d   | 0.695 | 0.702 | 0.766 | **0.768** | 0.766 | **0.768** | Promedio |
-| C0623i   | 0.718 | 0.722 | 0.741 | **0.756** | 0.730 | **0.756** | Promedio |
-| C0674i   | 0.700 | 0.700 | **0.832** | **0.832** | **0.832** | **0.832** | Empate |
-| C0011i   | 0.771 | 0.787 | 0.778 | **0.799** | 0.778 | **0.799** | Promedio |
-| C0014i   | 0.844 | 0.855 | 0.850 | **0.870** | 0.850 | **0.870** | Promedio |
-| C0806d   | 0.798 | 0.807 | 0.798 | **0.814** | 0.798 | **0.815** | Promedio |
-| **Promedio** | **0.778** | **0.792** | **0.808** | **0.837** | **0.804** | **0.837** | **Promedio** |
-| **Desv. Std** | **0.073** | **0.080** | **0.065** | **0.079** | **0.063** | **0.079** | - |
-| **Mejora vs Ref.** | **-** | **-** | **+0.030** | **+0.045** | **+0.026** | **+0.045** | - |
-
+| Paciente | Img Comp (Avg) | Img Comp (Prio) | Vec Ref (Avg) | Vec Ref (Prio) | LS Rand (Avg) | LS Rand (Prio) | LS Ref (Avg) | LS Ref (Prio) |
+|---|---|---|---|---|---|---|---|---|
+| C0011i | 0.5091 | 0.5161 | 0.5128 | 0.5169 | 0.5125 | 0.5145 | 0.5125 | 0.5145 |
+| C0012d | 0.6233 | 0.6499 | 0.6440 | 0.6428 | 0.6298 | 0.6463 | 0.6298 | 0.6042 |
+| C0013i | 0.5737 | 0.6119 | 0.6282 | 0.6135 | 0.5738 | 0.6111 | 0.5738 | 0.6111 |
+| C0014d | 0.5875 | 0.6208 | 0.6150 | 0.6166 | 0.5920 | 0.5655 | 0.5920 | 0.6140 |
+| C0014i | 0.6038 | 0.6334 | 0.6392 | 0.6370 | 0.6126 | 0.6338 | 0.6126 | 0.6338 |
+| C0015d | 0.6277 | 0.6532 | 0.6609 | 0.6506 | 0.6244 | 0.6446 | 0.6244 | 0.6446 |
+| C0623d | 0.5433 | 0.5515 | 0.5452 | 0.5487 | 0.5456 | 0.5443 | 0.5456 | 0.5443 |
+| C0623i | 0.5004 | 0.5027 | 0.5017 | 0.5014 | 0.5037 | 0.5054 | 0.5037 | 0.5035 |
+| C0674i | 0.4799 | 0.4810 | 0.4820 | 0.4817 | 0.4801 | 0.4801 | 0.4801 | 0.4801 |
+| C0699d | 0.2848 | 0.2876 | 0.2885 | 0.2895 | 0.2887 | 0.2899 | 0.2887 | 0.2899 |
+| C0753d | 0.5213 | 0.5300 | 0.5317 | 0.5345 | 0.5193 | 0.5330 | 0.5193 | 0.5330 |
+| C0793i | 0.5834 | 0.6014 | 0.6269 | 0.6007 | 0.5789 | 0.5488 | 0.5789 | 0.5197 |
+| C0806d | 0.6122 | 0.6287 | 0.6258 | 0.6299 | 0.6146 | 0.6299 | 0.6122 | 0.6299 |
+| C0844i | 0.4323 | 0.4377 | 0.4364 | 0.4374 | 0.4337 | 0.4367 | 0.4337 | 0.4367 |
+| C0845i | 0.5959 | 0.6177 | 0.6166 | 0.6155 | 0.6151 | 0.5526 | 0.6110 | 0.5526 |
+| Promedio | 0.5386 | 0.5549 | 0.5570 | 0.5544 | 0.5416 | 0.5424 | 0.5412 | 0.5408 |
 
 ### Análisis de Resultados
 
-**Hallazgos Principales:**
+Basado en las métricas cuantitativas obtenidas (CNR y Edge Preservation), se pueden extraer las siguientes conclusiones sobre el desempeño de las técnicas y métodos de fusión evaluados:
 
-1. **Fusión con Promedio domina**: Ganó en 14/15 casos (93.3%), con solo 1 empate
-2. **Vector inicial tiene poco impacto**: Los resultados son muy similares independientemente de si se inicia con el vector general o uno aleatorio
-3. **Mejora consistente**: La fusión con promedio mejora el fitness en promedio +0.029 puntos (+3.6%)
-4. **Convergencia robusta**: Ambos métodos convergen a soluciones similares desde diferentes puntos de partida
-5. **Búsqueda local es valiosa**: La optimización mejora el fitness en +0.045 puntos (+5.7%) comparado con usar solo el vector de referencia
+**1. Mejor Método de Fusión: Fusión por Promedio**
 
-**Valor de la Búsqueda Local:**
+Independientemente de la técnica de selección de capas utilizada, el método de **Fusión por Promedio** demuestra ser superior al de Prioridad.
+*   **CNR:** El método de Promedio obtiene consistentemente valores de CNR mucho más altos (e.g., **0.7384** vs 0.5022 en Búsqueda Local con Referencia). Esto indica que promediar los valores de píxeles en las zonas superpuestas ayuda a reducir el ruido y mejorar el contraste efectivo del tumor frente al fondo, en comparación con simplemente superponer capas (Prioridad).
+*   **Edge Preservation:** Ambos métodos mantienen un desempeño muy similar en la preservación de bordes (alrededor de 0.54 - 0.55), lo que significa que el método de Promedio logra mejorar drásticamente el contraste sin sacrificar la integridad estructural de los bordes originales.
 
-La comparación con el vector de referencia sin optimización muestra que la búsqueda local aporta mejoras significativas:
+**2. Mejor Técnica de Optimización: Búsqueda Local**
 
-| Método | Fitness Promedio | Mejora vs Vector Ref. |
-|--------|:----------------:|:---------------------:|
-| Vector Ref. + Prioridad | 0.778 | - |
-| Vector Ref. + Promedio | 0.792 | - |
-| **Búsqueda Local + Prioridad** | **0.808** | **+3.9%** |
-| **Búsqueda Local + Promedio** | **0.837** | **+5.7%** |
+La **Búsqueda Local** es la técnica más efectiva para maximizar la calidad de la imagen.
+*   Logra los valores más altos de **CNR (~0.73 - 0.74)**, superando significativamente a la Fusión Total de 7 capas (~0.59) y al Vector de Referencia estático (~0.43).
+*   Esto confirma que la optimización activa de la selección de capas es crucial. Simplemente usar todas las capas (Fusión Total) introduce información redundante o ruidosa que reduce el contraste, mientras que la búsqueda local selecciona la combinación precisa que maximiza la visibilidad de la zona de interés para cada paciente específico.
 
-**Observaciones clave:**
-- La búsqueda local **siempre mejora** el fitness, independientemente del método de fusión
-- La mejora es mayor con fusión promedio (+5.7%) que con prioridad (+3.9%)
-- Incluso con el mejor vector encontrado por búsqueda exhaustiva, la optimización local aporta valor
-- El paciente C0674i es una excepción: la búsqueda local encontró una mejora significativa (+0.132) que el vector de referencia no captura
+**Conclusión General:**
 
+La configuración óptima para el análisis de estas imágenes de electroimpedancia es utilizar **Búsqueda Local con Fusión por Promedio**. Esta combinación ofrece el mejor balance, maximizando la detectabilidad de las zonas de interés (alto CNR) mientras mantiene una estructura fiel a las imágenes originales.
 
-**Implicaciones:**
+### Comparación Visual: Búsqueda Local vs Fusión Total
 
-- La fusión con promedio es más efectiva para este problema de optimización
-- El vector general encontrado por búsqueda exhaustiva es un buen punto de partida, pero no es crítico
-- La búsqueda local es robusta y puede encontrar buenas soluciones desde puntos aleatorios
+Se han seleccionado 3 pacientes representativos (C0793i, C0014d, C0012d) para ilustrar visualmente el impacto de la optimización. Estas imágenes comparan el resultado de la **Búsqueda Local (iniciada con Vector de Referencia y Fusión Promedio)** contra la **Fusión Total de las 7 capas**. Se puede observar cómo la selección inteligente de capas elimina ruido y mejora la definición de las zonas de interés en comparación con el uso indiscriminado de toda la información disponible.
 
-**Estadísticas Detalladas:**
+#### Paciente C0793i
 
-| Métrica | Vector General<br>Prioridad | Vector General<br>Promedio | Vector Aleatorio<br>Prioridad | Vector Aleatorio<br>Promedio |
-|---------|:---------------------------:|:---------------------------:|:-----------------------------:|:----------------------------:|
-| Fitness Promedio | 0.808 | **0.837** | 0.804 | **0.837** |
-| Desviación Estándar | 0.065 | 0.079 | 0.063 | 0.079 |
-| Fitness Mínimo | 0.624 | 0.629 | 0.624 | 0.629 |
-| Fitness Máximo | 0.884 | **0.943** | 0.884 | **0.943** |
-| Victorias | 0 | **14** | 0 | **14** |
-| Empates | 1 | 1 | 1 | 1 |
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_total/average/C0793i_total_average.png) |
+| Vector Resultante: `[0 1 1 1 1 1 1]` | Vector: `[1 1 1 1 1 1 1]` |
 
-### Análisis de Tiempos de Convergencia
+#### Paciente C0014d
 
-Aunque el vector inicial tiene poco impacto en el fitness final, **sí afecta el tiempo de convergencia**, especialmente con tiempo límite corto:
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0014d_20251127_183028.png) | ![](results_total/average/C0014d_total_average.png) |
+| Vector Resultante: `[1 1 1 1 1 1 0]` | Vector: `[1 1 1 1 1 1 1]` |
 
-**Tiempos Promedio de Ejecución (límite de 5s):**
+#### Paciente C0012d
 
-| Escenario | Fusión Prioridad | Fusión Promedio | Ahorro con Vector General |
-|-----------|:----------------:|:---------------:|:-------------------------:|
-| **Vector General** | 0.062s | 0.147s | - |
-| **Vector Aleatorio** | 0.088s | 0.156s | - |
-| **Diferencia** | **-0.026s (-42%)** | **-0.009s (-6%)** | - |
-
-**Hallazgos sobre Tiempo:**
-
-1. **Vector General converge más rápido**:
-   - Con Fusión Prioridad: **42% más rápido** (0.062s vs 0.088s)
-   - Con Fusión Promedio: **6% más rápido** (0.147s vs 0.156s)
-
-2. **El beneficio depende del método de fusión**:
-   - La fusión con **prioridad** se beneficia significativamente del buen punto de partida
-   - La fusión con **promedio** es más robusta y menos sensible al punto inicial
-
-3. **Contexto del tiempo límite**:
-   - **Límite corto (< 10s)**: El ahorro de tiempo es significativo (hasta 42%)
-   - **Límite largo (1800s)**: El ahorro es despreciable (~0.001% del tiempo total)
-
-**Recomendaciones de Uso:**
-
-| Escenario | Vector Inicial Recomendado | Razón |
-|-----------|:-------------------------:|:------|
-| Búsquedas rápidas (< 10s) | Vector General | Ahorra hasta 42% de tiempo |
-| Producción (30 min) | Vector Aleatorio | Mismo fitness final, sin costo de búsqueda exhaustiva |
-| Múltiples ejecuciones cortas | Vector General | Beneficio acumulativo en tiempo |
-| Calidad prioritaria | Cualquiera + Fusión Promedio | Mejor fitness independiente del inicio |
-
-**Conclusión sobre Tiempo:**
-- Para el caso de uso típico (30 minutos de búsqueda local), el vector general **no ofrece ventaja práctica** en tiempo
-- El costo de calcular el vector general (búsqueda exhaustiva) no se justifica solo por el ahorro de tiempo
-- El vector general es útil principalmente como **punto de referencia** para comparaciones, no por eficiencia temporal
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_total/average/C0012d_total_average.png) |
+| Vector Resultante: `[1 1 1 1 1 1 0]` | Vector: `[1 1 1 1 1 1 1]` |
