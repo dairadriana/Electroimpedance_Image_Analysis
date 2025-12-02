@@ -1,224 +1,119 @@
-# Análisis de Imágenes de Electroimpedancia (EIM) con Optimización por Búsqueda Local y Fuerza Bruta
+# Optimization of Electroimpedance Image Fusion using Local Search and Layer Analysis
 
-Este proyecto implementa un sistema de análisis de imágenes de electroimpedancia (EIM) que combina procesamiento de imágenes con optimización mediante búsqueda local y búsqueda exhaustiva (fuerza bruta). El sistema fusiona máscaras de imágenes que representan diferentes capas de medición electroimpedanciométrica y utiliza algoritmos de optimización para seleccionar la combinación de capas que produce la mejor imagen final.
+Este proyecto presenta un enfoque para optimizar la fusión de imágenes de electroimpedancia (EIM) utilizando algoritmos de búsqueda local y análisis de capas. El sistema procesa conjuntos de 7 máscaras de imagen correspondientes a diferentes niveles de profundidad (N1-N7), buscando la combinación óptima que maximiza la detección de regiones de interés (tumores) y la preservación de los bordes.
 
-El proyecto consta de dos componentes principales:
-- **Procesamiento de Imágenes (MATLAB)**: Fusión de máscaras BMP con detección de áreas rojas y priorización de capas.
-- **Optimización (Python)**: Búsqueda local y fuerza bruta para seleccionar combinaciones óptimas de capas N1-N7.
-
-## Descripción General
-
-La electroimpedancia (EIM) es una técnica de imagen no invasiva que mide las propiedades eléctricas de los tejidos para detectar anomalías. Su importancia radica en proporcionar información detallada sobre la composición y estructura de los tejidos sin exposición a radiación, lo que la hace valiosa para aplicaciones médicas como el diagnóstico temprano de enfermedades.
-
-El proyecto procesa una serie de imágenes BMP que son máscaras generadas a partir de mediciones de electroimpedancia. Estas máscaras representan diferentes "niveles" o "capas" de medición (N1 a N7), donde cada nivel corresponde a una profundidad o estado diferente en el análisis electroimpedanciométrico.
-
-El objetivo principal es:
-1. **Fusionar máscaras**: Combinar las capas de manera prioritaria (N1 → N7), preservando la información de color original de las áreas detectadas.
-2. **Optimizar selección**: Usar búsqueda local para determinar qué combinación de capas produce la mejor imagen final, evaluada mediante métricas de calidad como entropía, contraste y reducción de ruido.
-3. **Generar imagen final**: Producir una imagen combinada que muestre las zonas de interés superpuestas sobre una imagen base (N7).
-
-En este proyecto, se implementó un sistema que combina procesamiento de imágenes en MATLAB con algoritmos de optimización en Python. Se dividieron los datos en conjuntos de entrenamiento y validación, se obtuvo un vector de referencia mediante búsqueda exhaustiva, y se aplicó búsqueda local para optimizar la selección de capas, evaluando diferentes métodos de fusión para mejorar la calidad de las imágenes resultantes.
-
+El sistema compara dos métodos de fusión (basado en prioridad y en promedio) aplicados a regiones de interés seleccionadas mediante criterios de color. Los resultados experimentales en un conjunto de pacientes demuestran que la optimización mediante **búsqueda local, combinada con la fusión por promedio, logra un rendimiento competitivo** en comparación con otras técnicas, obteniendo mejoras cuantificables en la Relación Contraste-Ruido (CNR) y manteniendo una adecuada preservación de los bordes estructurales.
 
 ## Metodología
 
-El proyecto siguió una metodología sistemática para optimizar la selección de capas en imágenes de electroimpedancia. Primero, se dividieron los datos en conjuntos de entrenamiento y validación para evaluar el rendimiento de los algoritmos.
+El problema de selección de capas se modela como un problema de optimización. Una solución se representa mediante un **vector binario de longitud 7**, donde cada posición corresponde a una de las capas (N1 a N7). Un valor de `1` indica que la capa se incluye en la fusión, mientras que `0` indica que se descarta. Esto permite explorar 127 combinaciones posibles de capas.
 
-Para obtener un vector de referencia, se realizó una búsqueda exhaustiva (fuerza bruta) evaluando todas las combinaciones posibles de capas.
+### 1. Detección de Regiones de Interés (ROI)
 
-Pseudocódigo para fuerza bruta:
+Antes de la fusión, es fundamental identificar las regiones que corresponden a tejido anómalo. Dado que las imágenes EIM utilizan mapas de color para representar la conductividad, se emplea un criterio de segmentación en el espacio de color RGB. Un píxel se considera parte de una ROI si cumple la siguiente condición, característica de zonas de alta conductividad:
 
-```
-Para cada combinación binaria de 7 bits (excepto todas ceros):
-    Evaluar fitness promedio sobre pacientes de entrenamiento
-    Seleccionar la combinación con mejor fitness promedio
-```
+`(R ≥ 60) Y (R > G) Y (G > B)`
 
-Luego, se inició la búsqueda local a partir de este vector de referencia.
+Esta segmentación permite que el proceso de fusión se concentre exclusivamente en las áreas clínicamente relevantes.
 
-Pseudocódigo para búsqueda local:
+### 2. Métodos de Fusión
 
-```
-Inicializar con vector de referencia
-Mientras no se alcance máximo de iteraciones y haya mejora:
-    Generar vecino cambiando un bit
-    Evaluar fitness del vecino
-    Si fitness > mejor_fitness:
-        Actualizar mejor_vector y mejor_fitness
-        Continuar desde este vecino
-```
+Se proponen y evalúan dos estrategias distintas para combinar la información de las capas seleccionadas:
 
-Se utilizaron dos tipos de fusión: prioridad y promedio.
+1.  **Fusión por Prioridad (Priority-based):** Las capas se superponen en orden secuencial (N1 → N7). Cuando se detecta un área roja en una capa, sus píxeles se "pintan" en la imagen final. Los píxeles ya ocupados por capas anteriores no se modifican. Este método prioriza la información de las capas más superficiales.
 
-Pseudocódigo para fusión con prioridad:
+2.  **Fusión por Promedio (Average-based):** Este método integra la información de todas las capas seleccionadas. En las zonas donde las ROIs de múltiples capas se superponen, el color del píxel resultante se calcula como la **media aritmética** de los colores de esas capas. El objetivo es suavizar variaciones y reducir el ruido aleatorio.
 
-```
-Para cada capa seleccionada en orden N1→N7:
-    Detectar áreas rojas
-    Para píxeles nuevos (no ocupados):
-        Asignar colores originales
-        Marcar como ocupados
-```
+### 3. Algoritmos de Optimización
 
-Pseudocódigo para fusión con promedio:
+Para encontrar el vector binario óptimo para cada paciente, se utilizaron dos algoritmos:
 
-```
-Para cada capa seleccionada:
-    Detectar áreas rojas
-    Para píxeles en áreas rojas:
-        Promediar colores con capas anteriores
-```
+1.  **Búsqueda Exhaustiva (Fuerza Bruta):** Para establecer una línea base sólida, se realizó una búsqueda exhaustiva en un conjunto de entrenamiento. Se evaluaron las 127 combinaciones de capas para cada paciente, y el vector que maximizó el rendimiento promedio global fue seleccionado como el **"Vector de Referencia"**. El análisis arrojó el siguiente vector:
+    `v_ref = [1, 0, 1, 0, 0, 0, 0]`
+    Esto sugiere que, en promedio, la combinación de las capas N1 y N3 proporciona una base sólida para la detección.
 
-Los parámetros utilizados en la búsqueda local incluyen: máximo de iteraciones (200), evaluación de fitness basada en proporción de píxeles rojos válidos.
+2.  **Búsqueda Local (Local Search):** Este es el algoritmo principal de optimización. Explora el vecindario de un vector solución realizando cambios mínimos (voltear un bit) para encontrar mejoras incrementales. El proceso se inicia desde un punto (aleatorio o el Vector de Referencia) y continúa hasta que no se encuentran mejoras o se alcanza un máximo de iteraciones.
 
-La función objetivo se define como:
+La función de evaluación (fitness) pondera la cantidad y consistencia de los píxeles válidos detectados:
+`fitness = 0.8 * (píxeles_válidos / píxeles_detectados) + 0.2 * (píxeles_válidos / (píxeles_válidos + 50))`
 
-fitness = 0.8 * (píxeles_válidos / píxeles_detectados) + 0.2 * (píxeles_válidos / (píxeles_válidos + 50))
+## Resultados y Análisis
 
-Donde píxeles_válidos son aquellos con canal rojo > verde y azul, y rojo > 60/255.
+El rendimiento de los métodos se cuantificó utilizando dos métricas clave: **Relación Contraste-Ruido (CNR)**, que mide la detectabilidad del tumor, y **Preservación de Bordes (Edge Preservation)**, que mide la fidelidad estructural.
 
-## Procedimiento General
+### Resultados Cuantitativos
 
-El sistema funciona en dos fases complementarias:
+La siguiente tabla resume los resultados promedio obtenidos en el conjunto de 15 pacientes. La columna "Max Layer (Base)" representa el CNR de la mejor capa individual, que sirve como línea base a superar.
 
-### Fase 1: Procesamiento de Imágenes (MATLAB)
-```pseudocode
-Para cada conjunto de imágenes BMP (N1-N7):
-    Cargar imágenes en orden N1 → N7
-    Para cada imagen:
-        Detectar áreas rojas usando redDetection.m
-        Fusionar colores preservando prioridad
-    Generar imagen combinada final
-```
+| Método | CNR (Promedio ± Desv. Est.) | Edge Preserv. (Promedio ± Desv. Est.) |
+| :--- | :--- | :--- |
+| **Max Layer (Base)** | **3.5398 ± 3.5418** | - |
+| Fusión Total (Promedio) | 0.5879 ± 0.5691 | 0.5386 ± 0.0908 |
+| Fusión Total (Prioridad) | 0.3920 ± 0.4294 | 0.5549 ± 0.0998 |
+| Vector Ref. (Promedio) | 0.4327 ± 0.5144 | 0.5570 ± 0.1017 |
+| Vector Ref. (Prioridad) | 0.3840 ± 0.5056 | 0.5544 ± 0.0988 |
+| Búsqueda Local Aleatoria (Promedio) | 0.7267 ± 0.7393 | 0.5417 ± 0.0916 |
+| Búsqueda Local Aleatoria (Prioridad) | 0.5071 ± 0.5503 | 0.5424 ± 0.0940 |
+| **Búsqueda Local Ref. (Promedio)** | **0.7384 ± 0.7310** | **0.5412 ± 0.0913** |
+| Búsqueda Local Ref. (Prioridad) | 0.5022 ± 0.5543 | 0.5408 ± 0.0933 |
 
-### Fase 2: Optimización (Python)
-#### Búsqueda Local:
-```pseudocode
-Inicializar vector binario aleatorio (7 bits, al menos uno activado)
-Evaluar fitness del vector inicial usando objective_function()
-Mientras no se alcance máximo de iteraciones y haya mejora:
-    Generar vecinos (cambiar un bit)
-    Para cada vecino:
-        Evaluar fitness usando objective_function()
-        Si fitness > mejor_fitness_actual:
-            Actualizar mejor_vector y mejor_fitness
-            Continuar búsqueda desde este vecino
-Guardar mejor vector encontrado y imagen correspondiente
-```
+### Análisis de Resultados
 
-#### Búsqueda Exhaustiva (Fuerza Bruta):
-```pseudocode
-Para cada una de las 127 combinaciones posibles (7 bits, al menos uno activado):
-    Evaluar fitness promedio sobre múltiples pacientes usando objective_function()
-    Aplicar criterio de parsimonia para desempates (menor número de capas activadas)
-Seleccionar el vector con mejor fitness promedio global
-Guardar resultados detallados y resúmenes
-```
+Basado en los resultados cuantitativos, se extraen las siguientes conclusiones:
 
-### Complementariedad entre Scripts
+1.  **El Problema Central es la Degradación del Contraste:** El hallazgo más importante es que todos los métodos de fusión fallan en superar el CNR de la mejor capa individual (un promedio de **0.7384** en el mejor de los casos vs. **3.5398** de la capa base). Esto indica que la fusión indiscriminada, incluso optimizada, tiende a diluir la señal clara de una capa buena con información ruidosa de otras, degradando la calidad diagnóstica.
 
-- **MATLAB** proporciona la lógica base de fusión de imágenes
-- **Python** replica esta lógica en `objective_function.py` para evaluación rápida
-- **Búsqueda local** en `local_search.py` encuentra óptimos locales eficientemente
-- **Búsqueda exhaustiva** en `find_general_vector.py` garantiza el óptimo global evaluando todas las combinaciones
-- **Función objetivo** cuantifica calidad basada en proporción de píxeles rojos válidos
-- Resultado: vector óptimo que selecciona capas para mejor fusión
+2.  **Mejor Método de Fusión: Fusión por Promedio:** Independientemente de la técnica de selección, la **Fusión por Promedio** demuestra ser consistentemente superior a la Fusión por Prioridad. El método de promedio obtiene valores de CNR significativamente más altos (e.g., **0.7384** vs 0.5022 para Búsqueda Local con Referencia), sugiriendo que promediar los píxeles ayuda a reducir el ruido y a mejorar el contraste.
 
-## Requisitos del Sistema
+3.  **Mejor Técnica de Optimización: Búsqueda Local:** La **Búsqueda Local iniciada desde el Vector de Referencia** es la técnica más efectiva, logrando el mejor rendimiento en CNR (**0.7384**). Esto confirma que una selección de capas adaptativa para cada paciente es crucial y superior a usar todas las capas (Fusión Total) o un vector estático (Vector de Referencia).
 
-### MATLAB
+### Conclusión General
+
+La combinación de **Búsqueda Local (iniciada con Vector de Referencia) y Fusión por Promedio** se posiciona como el método más robusto. Aunque no logra superar a la mejor capa individual, minimiza la degradación del contraste y maximiza la calidad de la imagen fusionada resultante en comparación con las otras estrategias evaluadas. Futuros trabajos deberían enfocarse en métodos de fusión más inteligentes que prioricen y preserven la señal de la capa de mayor calidad en lugar de promediarla.
+
+### Comparación Visual
+
+Las siguientes imágenes comparan el resultado de la **Búsqueda Local (Ref. Vector + Promedio)** contra la **Fusión Total de las 7 capas (Promedio)**. Se observa cómo la selección inteligente de capas puede reducir el ruido y mejorar la definición de las ROIs.
+
+#### Paciente C0793i
+*Vector Resultante: `[0 1 1 1 1 1 1]`*
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_total/average/C0793i_total_average.png) |
+
+#### Paciente C0014d
+*Vector Resultante: `[1 1 1 1 1 1 0]`*
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0014d_20251127_183028.png) | ![](results_total/average/C0014d_total_average.png) |
+
+#### Paciente C0012d
+*Vector Resultante: `[1 1 1 1 1 1 0]`*
+| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
+| :---: | :---: |
+| ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_total/average/C0012d_total_average.png) |
+
+## Requisitos y Uso del Sistema
+
+### Requisitos
+
+**MATLAB**
 - MATLAB con Image Processing Toolbox
 - Archivos de imagen en formato BMP RGB
-- Estructura de nombres específica: `C0683d_N[1-7]_mask.bmp`
+- Estructura de nombres: `C0683d_N[1-7]_mask.bmp`
 
-### Python
+**Python**
 - Python 3.6 o superior
-- Librerías requeridas:
-  - NumPy
-  - OpenCV (cv2)
-  - SciPy
-  - scikit-image
-  - Matplotlib
-- Sistema operativo: Linux, Windows o macOS
+- Librerías: NumPy, OpenCV (cv2), SciPy, scikit-image, Matplotlib
 
-## Configuración y Uso
+### Configuración y Uso
 
-### MATLAB
-Para usar el script con diferentes conjuntos de datos:
-
-1. Modificar la variable `folder` en `multipleImageProcessing.m` para apuntar a la carpeta deseada
-2. Ajustar `prefijo` si los nombres de archivo cambian
-3. Modificar `sufijosPermitidos` si se necesitan diferentes niveles N
-
-### Python
 #### Validación de Instalación
-Ejecutar primero:
+Ejecutar primero para verificar que todas las librerías están instaladas:
 ```bash
 python3 test_installation.py
-```
 
-#### Búsqueda Local
-Optimizar selección de capas usando búsqueda local:
-```bash
-python3 local_search.py --image_folder Images/Prueba --prefix C0683d --out_dir results
-```
 
-**Parámetros:**
-- `--image_folder`: Carpeta con imágenes BMP
-- `--prefix`: Prefijo de archivos (ej: C0683d)
-- `--out_dir`: Directorio para guardar resultados
-- `--max_iters`: Máximo de iteraciones (default: 200)
-
-#### Búsqueda Exhaustiva
-Encontrar el vector óptimo global evaluando todas las combinaciones:
-```bash
-python3 find_general_vector.py
-```
-
-**Nota:** El script utiliza configuraciones fijas para carpeta de imágenes (`Images/Prueba`) y prefijos de pacientes. Los resultados se guardan en `results_data_analysis/`.
-
-#### Evaluación Individual
-Probar un cromosoma específico:
-```bash
-python3 evaluate_individual.py --chrom 1 0 1 1 0 1 1 --out imagen_resultante.png
-```
-
-Los resultados se guardan en la carpeta `results/` con archivos `.mat` (cromosomas) y `.png` (imágenes).
-
-## Interpretación de Resultados
-
-### Procesamiento de Imágenes
-- **N1-N6**: Capas superiores que se fusionan por prioridad sobre N7
-- **N7**: Capa base que sirve como fondo
-- **Áreas rojas**: Zonas de interés detectadas en cada máscara
-- **Fusión**: Combinación de colores originales preservando la prioridad de capas
-
-### Optimización
-- **Vector binario**: Vector de 7 bits representando selección de capas (1=incluida, 0=excluida)
-- **Fitness**: Puntuación basada en proporción de píxeles rojos válidos detectados (0.8 * calidad + 0.2 * presencia)
-- **Mejor vector**: Combinación óptima de capas guardada en `.mat`
-- **Imagen resultante**: Visualización final guardada como `.png`
-- **Búsqueda local**: Encuentra óptimos locales eficientemente
-- **Búsqueda exhaustiva**: Garantiza el óptimo global evaluando todas las combinaciones posibles
-
-Este sistema permite:
-1. Visualizar propiedades electroimpedanciométricas a través de diferentes profundidades
-2. Optimizar la selección de capas para mejorar la calidad de imagen
-3. Comparar resultados entre diferentes configuraciones de medición EIM
-
-## Resultados Experimentales: Comparación de Métodos de Fusión
-
-Se realizó un estudio comparativo de dos métodos de fusión de imágenes en 15 pacientes de validación:
-
-### Métodos Comparados
-
-1. **Fusión con Prioridad** (`objective_function_priority.py`): La primera capa seleccionada tiene prioridad sobre las siguientes (inspirado en MATLAB)
-2. **Fusión con Promedio** (`objective_function.py`): Los colores se promedian en áreas de superposición
-
-### Escenarios Evaluados
-
-- **Con Vector General**: Búsqueda local iniciando desde el vector óptimo encontrado por búsqueda exhaustiva `[1 0 1 0 0 0 0]`
-- **Con Vector Aleatorio**: Búsqueda local iniciando desde vectores aleatorios diferentes para cada paciente
 
 ### Ejemplos Visuales de Resultados
 
