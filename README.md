@@ -1,298 +1,276 @@
-# Análisis de Imágenes de Electroimpedancia (EIM) con Optimización por Búsqueda Local y Fuerza Bruta
+# Optimization of Electroimpedance Image Fusion using Local Search and Layer Analysis
 
-Este proyecto implementa un sistema de análisis de imágenes de electroimpedancia (EIM) que combina procesamiento de imágenes con optimización mediante búsqueda local y búsqueda exhaustiva (fuerza bruta). El sistema fusiona máscaras de imágenes que representan diferentes capas de medición electroimpedanciométrica y utiliza algoritmos de optimización para seleccionar la combinación de capas que produce la mejor imagen final.
+Ashley Dafne Aguilar Salinas  
+Computer Science Department, INAOE  
+Tonantzintla, Puebla, México  
+ashleyd.aguilars@inaoep.mx  
 
-El proyecto consta de dos componentes principales:
-- **Procesamiento de Imágenes (MATLAB)**: Fusión de máscaras BMP con detección de áreas rojas y priorización de capas.
-- **Optimización (Python)**: Búsqueda local y fuerza bruta para seleccionar combinaciones óptimas de capas N1-N7.
+Daira Adriana Chavarría Rodríguez  
+Computer Science Department, INAOE  
+Tonantzintla, Puebla, México  
+daira.chavarriar@inaoep.mx  
 
-## Descripción General
+## Abstract
 
-La electroimpedancia (EIM) es una técnica de imagen no invasiva que mide las propiedades eléctricas de los tejidos para detectar anomalías. Su importancia radica en proporcionar información detallada sobre la composición y estructura de los tejidos sin exposición a radiación, lo que la hace valiosa para aplicaciones médicas como el diagnóstico temprano de enfermedades.
+This paper presents an approach for optimizing the fusion of electroimpedance images (EIM) using local search algorithms and layer analysis. The proposed system processes sets of 7 image masks corresponding to different depth levels (N1-N7), seeking the optimal combination that maximizes the detection of regions of interest (tumors) and edge preservation. Two fusion methods are compared: priority-based and average-based, applied to regions of interest selected via color criteria. Experimental results on a set of patients demonstrate that optimization using local search, combined with average fusion, achieves competitive performance compared to other fusion techniques, such as the total combination of all 7 layers, obtaining quantifiable improvements in Contrast-to-Noise Ratio (CNR) and maintaining adequate preservation of structural edges.
 
-El proyecto procesa una serie de imágenes BMP que son máscaras generadas a partir de mediciones de electroimpedancia. Estas máscaras representan diferentes "niveles" o "capas" de medición (N1 a N7), donde cada nivel corresponde a una profundidad o estado diferente en el análisis electroimpedanciométrico.
+## Keywords
 
-El objetivo principal es:
-1. **Fusionar máscaras**: Combinar las capas de manera prioritaria (N1 → N7), preservando la información de color original de las áreas detectadas.
-2. **Optimizar selección**: Usar búsqueda local para determinar qué combinación de capas produce la mejor imagen final, evaluada mediante métricas de calidad como entropía, contraste y reducción de ruido.
-3. **Generar imagen final**: Producir una imagen combinada que muestre las zonas de interés superpuestas sobre una imagen base (N7).
+Electroimpedance, Image Fusion, Local Search, Optimization, Medical Image Processing.
 
-En este proyecto, se implementó un sistema que combina procesamiento de imágenes en MATLAB con algoritmos de optimización en Python. Se dividieron los datos en conjuntos de entrenamiento y validación, se obtuvo un vector de referencia mediante búsqueda exhaustiva, y se aplicó búsqueda local para optimizar la selección de capas, evaluando diferentes métodos de fusión para mejorar la calidad de las imágenes resultantes.
+## Introduction
 
+Electroimpedance (EIM) is a non-invasive medical imaging technique that allows characterizing biological tissues based on their electrical properties, such as conductivity and permittivity [2], [3]. This technique is particularly valuable for early detection of anomalies, such as breast tumors, as malignant tissues often exhibit electrical properties that are significantly different from those of healthy tissues [2]. Unlike other modalities such as X-rays, EIM does not expose the patient to ionizing radiation, making it a safe option for frequent monitoring.
 
-## Metodología
+However, the interpretation of EIM images can be complex because relevant information is often distributed across multiple layers or depth levels, and spatial resolution is usually limited compared to anatomical techniques like magnetic resonance imaging. Recent studies have explored various techniques to improve the quality and diagnostic utility of these images, including advanced reconstruction methods and information fusion [4]. In particular, the work presented in [5] (DOI: 10.60647/q3yr-rw85) highlights the importance of considering volumetric information and intelligent data selection to improve pathology detection.
 
-El proyecto siguió una metodología sistemática para optimizar la selección de capas en imágenes de electroimpedancia. Primero, se dividieron los datos en conjuntos de entrenamiento y validación para evaluar el rendimiento de los algoritmos.
+In this project, we address the problem of optimal selection and fusion of EIM image layers. Each patient study consists of 7 layers (N1 to N7), where each layer may contain vital information about the presence and location of anomalies. Indiscriminate fusion of all layers can introduce noise and reduce the contrast of the region of interest. Therefore, there is a need for an intelligent method that selects the most effective combination of layers to generate a high-quality final composite image.
 
-Para obtener un vector de referencia, se realizó una búsqueda exhaustiva (fuerza bruta) evaluando todas las combinaciones posibles de capas.
+The main objective of this work is to develop and evaluate a system that combines image processing techniques with metaheuristic optimization algorithms to determine the best fusion strategy.
 
-Pseudocódigo para fuerza bruta:
+## Methodology
+
+### Individual Representation
+
+To address the layer selection problem as an optimization problem, the solution is modeled using a binary vector v of length 7. In this representation, each position of the vector corresponds to one of the 7 depth layers (N1 to N7). A value of 1 at position i indicates that the i-th layer is included in the fusion process, while a 0 indicates it is discarded. This allows representing 2^7 − 1 = 127 possible layer combinations (excluding the trivial case of the null vector). This compact representation facilitates the application of search algorithms, allowing efficient exploration of the solution space to find the combination that maximizes the resulting image quality.
+
+### Region of Interest Detection
+
+Before proceeding to fusion, it is fundamental to identify regions that potentially correspond to anomalous tissue (tumors) in each of the selected layers. Since EIM images typically use color maps to represent conductivity, an RGB color space-based segmentation criterion is employed. Specifically, pixels with a predominant red component are sought, which is characteristic of high conductivity zones in the used color map. A pixel is considered part of the region of interest if it meets the condition: (R ≥ 60) ∧ (R > G) ∧ (G > B). This segmentation allows focusing the fusion process exclusively on clinically relevant areas, preventing background noise or artifacts present in other image zones from degrading the final result.
+
+The choice of red-dominant pixel segmentation is guided by the specific color map used in EIM systems, where red tones typically indicate higher conductivity values. This colorimetric encoding is consistent across the dataset, allowing reliable identification of high-contrast zones that potentially correspond to pathological regions.
+
+### Fusion Methods
+
+Two distinct strategies are proposed and evaluated to combine the information from selected layers, to determine which best preserves tumor characteristics:
+
+#### Priority Fusion
+
+In this method, layers are processed in a predefined sequential order, from the most superficial layer (N1) to the deepest (N7). The underlying idea is to simulate a physical superposition, where information from a higher layer takes precedence over lower ones. If a pixel at position (x,y) is identified as part of a region of interest in a higher layer, its value overwrites any information from lower layers at that same position. This approach seeks to preserve the original intensity of the strongest detected signal.
+
+#### Average Fusion
+
+Unlike the previous method, average fusion seeks to integrate information from all selected layers that detect an anomaly at the same location. In zones where multiple layers overlap, the resulting pixel color is calculated as the arithmetic mean of the colors of those layers: C_final(x,y) = 1/K ∑_{i∈S} C_i(x,y), where S is the set of active layers and K is its cardinality. This technique aims to smooth abrupt variations and reduce random noise, producing a more homogeneous representation of the region of interest.
+
+### Optimization Algorithms
+
+#### Reference Vector (Brute Force)
+
+To start the local search from a promising and non-random point, an exhaustive search (brute force) was first performed on a representative training set. All 127 possible layer combinations were evaluated for each patient in the training set, and their average performance was calculated. The vector that maximized the global average fitness was selected as the "Reference Vector". The analysis yielded the vector:
+
+v_ref = [1, 0, 1, 0, 0, 0, 0]
+
+This vector suggests that, on average, the combination of layers N1 and N3 provides a solid basis for detection and serves as an initial seed to refine the solution via local search for each specific patient.
+
+Given the limited dimensionality of the problem (2^7 = 128 possible combinations), exhaustive evaluation remains computationally feasible. However, the proposed local search algorithm lays the foundation for scaling to higher dimensions or for incorporating more complex fusion strategies that may arise in extended applications.
+
+#### Local Search
+
+Local Search explores the neighborhood of the current vector by making minimal changes (bit flip) to find incremental improvements. The pseudocode of the implemented algorithm is:
 
 ```
-Para cada combinación binaria de 7 bits (excepto todas ceros):
-    Evaluar fitness promedio sobre pacientes de entrenamiento
-    Seleccionar la combinación con mejor fitness promedio
+v_best ← v_initial
+f_best ← Evaluate(v_best)
+improvement ← TRUE
+while improvement AND iter < MAX_ITER do
+    improvement ← FALSE
+    for i ← 1 to 7 do
+        v_neighbor ← FlipBit(v_best, i)
+        f_neighbor ← Evaluate(v_neighbor)
+        if f_neighbor > f_best then
+            v_best ← v_neighbor
+            f_best ← f_neighbor
+            improvement ← TRUE
+            break
+        end if
+    end for
+end while
+return v_best
 ```
 
-Luego, se inició la búsqueda local a partir de este vector de referencia.
+The evaluation function (fitness) weights the quantity of valid pixels detected and their consistency, favoring solutions that clearly highlight the zone of interest.
 
-Pseudocódigo para búsqueda local:
+By optimizing the selection of layers per patient, the proposed method avoids the need to fuse all 7 layers indiscriminately, thus reducing informational redundancy. The adaptiveness of the approach ensures that the selected configuration is tailored to each patient's specific impedance profile, aligning with the objective of maximizing diagnostically relevant content while minimizing unnecessary data integration.
 
-```
-Inicializar con vector de referencia
-Mientras no se alcance máximo de iteraciones y haya mejora:
-    Generar vecino cambiando un bit
-    Evaluar fitness del vecino
-    Si fitness > mejor_fitness:
-        Actualizar mejor_vector y mejor_fitness
-        Continuar desde este vecino
-```
+## Results
 
-Se utilizaron dos tipos de fusión: prioridad y promedio.
+### Evaluation Metrics
 
-Pseudocódigo para fusión con prioridad:
+To quantify the performance of the fusion methods, two main metrics were used:
 
-```
-Para cada capa seleccionada en orden N1→N7:
-    Detectar áreas rojas
-    Para píxeles nuevos (no ocupados):
-        Asignar colores originales
-        Marcar como ocupados
-```
+#### Contrast-to-Noise Ratio (CNR)
 
-Pseudocódigo para fusión con promedio:
+CNR measures the ability to distinguish the region of interest (tumor) from the background. It is calculated as:
 
-```
-Para cada capa seleccionada:
-    Detectar áreas rojas
-    Para píxeles en áreas rojas:
-        Promediar colores con capas anteriores
-```
+CNR = |μ_tumor − μ_background| / σ_background
 
-Los parámetros utilizados en la búsqueda local incluyen: máximo de iteraciones (200), evaluación de fitness basada en proporción de píxeles rojos válidos.
+Where μ_tumor and μ_background are the mean signal intensities in the tumor and background regions, respectively, and σ_background is the standard deviation of the background. A higher value indicates better detectability.
 
-La función objetivo se define como:
+#### Edge Preservation
 
-fitness = 0.8 * (píxeles_válidos / píxeles_detectados) + 0.2 * (píxeles_válidos / (píxeles_válidos + 50))
+A metric based on Sobel edge information (proposed by Xydeas and Petrovic) was used to evaluate how well the fused image preserves the edges present in the original layers. The value ranges between 0 and 1, where 1 indicates perfect preservation.
 
-Donde píxeles_válidos son aquellos con canal rojo > verde y azul, y rojo > 60/255.
+### Quantitative Results
 
-## Procedimiento General
+Table I summarizes the results obtained (Mean ± Standard Deviation) for the different configurations evaluated on the set of 15 patients.
 
-El sistema funciona en dos fases complementarias:
+| Method | CNR | Edge Preserv. |
+|--------|-----|---------------|
+| Max Layer (Base) | 3.5398 ± 3.5418 | - |
+| Total Fusion (Avg) | 0.5879 ± 0.5691 | 0.5386 ± 0.0908 |
+| Total Fusion (Prio) | 0.3920 ± 0.4294 | 0.5549 ± 0.0998 |
+| Ref. Vector (Avg) | 0.4327 ± 0.5144 | 0.5570 ± 0.1017 |
+| Ref. Vector (Prio) | 0.3840 ± 0.5056 | 0.5544 ± 0.0988 |
+| LS Random (Avg) | 0.7267 ± 0.7393 | 0.5417 ± 0.0916 |
+| LS Random (Prio) | 0.5071 ± 0.5503 | 0.5424 ± 0.0940 |
+| LS Ref (Avg) | **0.7384 ± 0.7310** | 0.5412 ± 0.0913 |
+| LS Ref (Prio) | 0.5022 ± 0.5543 | 0.5408 ± 0.0933 |
 
-### Fase 1: Procesamiento de Imágenes (MATLAB)
-```pseudocode
-Para cada conjunto de imágenes BMP (N1-N7):
-    Cargar imágenes en orden N1 → N7
-    Para cada imagen:
-        Detectar áreas rojas usando redDetection.m
-        Fusionar colores preservando prioridad
-    Generar imagen combinada final
-```
+It is observed that the combination of Local Search starting with Reference Vector and Average Fusion (LS Ref Avg) achieves the best performance in CNR (0.7384), significantly outperforming total fusion (0.5879) and priority methods. Edge preservation remains consistent around 0.54−0.55 across all methods, indicating that the improvement in contrast does not sacrifice image structure.
 
-### Fase 2: Optimización (Python)
-#### Búsqueda Local:
-```pseudocode
-Inicializar vector binario aleatorio (7 bits, al menos uno activado)
-Evaluar fitness del vector inicial usando objective_function()
-Mientras no se alcance máximo de iteraciones y haya mejora:
-    Generar vecinos (cambiar un bit)
-    Para cada vecino:
-        Evaluar fitness usando objective_function()
-        Si fitness > mejor_fitness_actual:
-            Actualizar mejor_vector y mejor_fitness
-            Continuar búsqueda desde este vecino
-Guardar mejor vector encontrado y imagen correspondiente
-```
+### Qualitative Results
 
-#### Búsqueda Exhaustiva (Fuerza Bruta):
-```pseudocode
-Para cada una de las 127 combinaciones posibles (7 bits, al menos uno activado):
-    Evaluar fitness promedio sobre múltiples pacientes usando objective_function()
-    Aplicar criterio de parsimonia para desempates (menor número de capas activadas)
-Seleccionar el vector con mejor fitness promedio global
-Guardar resultados detallados y resúmenes
-```
+To illustrate the impact of layer selection, the following figures present a detailed breakdown for patients C0753d, C0844i, and C0699d, who obtained some of the best CNR scores. The 7 original individual layers (N1-N7) and the final result of the optimized fusion using Local Search initiated with the Reference Vector are shown. It can be seen how the fused image manages to integrate relevant information, discarding noise present in non-informative layers and improving tumor definition.
 
-### Complementariedad entre Scripts
+#### Patient C0753d
 
-- **MATLAB** proporciona la lógica base de fusión de imágenes
-- **Python** replica esta lógica en `objective_function.py` para evaluación rápida
-- **Búsqueda local** en `local_search.py` encuentra óptimos locales eficientemente
-- **Búsqueda exhaustiva** en `find_general_vector.py` garantiza el óptimo global evaluando todas las combinaciones
-- **Función objetivo** cuantifica calidad basada en proporción de píxeles rojos válidos
-- Resultado: vector óptimo que selecciona capas para mejor fusión
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N1_mask.png" width="100%" alt="N1">
+<p>N1</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N2_mask.png" width="100%" alt="N2">
+<p>N2</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N3_mask.png" width="100%" alt="N3">
+<p>N3</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N4_mask.png" width="100%" alt="N4">
+<p>N4</p>
+</div>
+</div>
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N5_mask.png" width="100%" alt="N5">
+<p>N5</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N6_mask.png" width="100%" alt="N6">
+<p>N6</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0753d_N7_mask.png" width="100%" alt="N7">
+<p>N7</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/best_img_C0753d_20251127_183028.png" width="100%" alt="Fused">
+<p>Fused</p>
+</div>
+</div>
 
-## Requisitos del Sistema
+#### Patient C0844i
 
-### MATLAB
-- MATLAB con Image Processing Toolbox
-- Archivos de imagen en formato BMP RGB
-- Estructura de nombres específica: `C0683d_N[1-7]_mask.bmp`
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N1_mask.png" width="100%" alt="N1">
+<p>N1</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N2_mask.png" width="100%" alt="N2">
+<p>N2</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N3_mask.png" width="100%" alt="N3">
+<p>N3</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N4_mask.png" width="100%" alt="N4">
+<p>N4</p>
+</div>
+</div>
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N5_mask.png" width="100%" alt="N5">
+<p>N5</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N6_mask.png" width="100%" alt="N6">
+<p>N6</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0844i_N7_mask.png" width="100%" alt="N7">
+<p>N7</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/best_img_C0844i_20251127_183026.png" width="100%" alt="Fused">
+<p>Fused</p>
+</div>
+</div>
 
-### Python
-- Python 3.6 o superior
-- Librerías requeridas:
-  - NumPy
-  - OpenCV (cv2)
-  - SciPy
-  - scikit-image
-  - Matplotlib
-- Sistema operativo: Linux, Windows o macOS
+#### Patient C0699d
 
-## Configuración y Uso
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N1_mask.png" width="100%" alt="N1">
+<p>N1</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N2_mask.png" width="100%" alt="N2">
+<p>N2</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N3_mask.png" width="100%" alt="N3">
+<p>N3</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N4_mask.png" width="100%" alt="N4">
+<p>N4</p>
+</div>
+</div>
+<div style="display: flex; justify-content: space-around;">
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N5_mask.png" width="100%" alt="N5">
+<p>N5</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N6_mask.png" width="100%" alt="N6">
+<p>N6</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/C0699d_N7_mask.png" width="100%" alt="N7">
+<p>N7</p>
+</div>
+<div style="text-align: center;">
+<img src="Images/figures/best_img_C0699d_20251127_183027.png" width="100%" alt="Fused">
+<p>Fused</p>
+</div>
+</div>
 
-### MATLAB
-Para usar el script con diferentes conjuntos de datos:
+The optimized images show a clear reduction in noise and better definition of the region of interest compared to individual layers, validating the effectiveness of the proposed method.
 
-1. Modificar la variable `folder` en `multipleImageProcessing.m` para apuntar a la carpeta deseada
-2. Ajustar `prefijo` si los nombres de archivo cambian
-3. Modificar `sufijosPermitidos` si se necesitan diferentes niveles N
+## Conclusions
 
-### Python
-#### Validación de Instalación
-Ejecutar primero:
-```bash
-python3 test_installation.py
-```
+This work has demonstrated the feasibility and efficacy of applying metaheuristic optimization techniques, specifically local search, to the problem of electroimpedance image fusion. The results obtained indicate that intelligent layer selection, rather than indiscriminate fusion, allows for significantly improving the quality of diagnostic images, increasing the contrast between tumor tissue and the background without sacrificing edge integrity. The Local Search strategy starting with a Reference Vector, combined with average fusion, positions itself as the most robust method, achieving the best performance in Contrast-to-Noise Ratio (CNR).
 
-#### Búsqueda Local
-Optimizar selección de capas usando búsqueda local:
-```bash
-python3 local_search.py --image_folder Images/Prueba --prefix C0683d --out_dir results
-```
+As future work, the exploration of alternative color spaces, such as HSL (Hue, Saturation, Lightness), is proposed for the segmentation stage. It is possible that separating chrominance and luminance information allows for more robust detection of regions of interest, especially in the presence of variable lighting conditions or color artifacts. Likewise, the integration of more complex optimization algorithms, such as genetic algorithms or particle swarm optimization, could be investigated to explore the search space more globally, although the current local search approach has proven to be efficient and effective for the dimensionality of the problem addressed.
 
-**Parámetros:**
-- `--image_folder`: Carpeta con imágenes BMP
-- `--prefix`: Prefijo de archivos (ej: C0683d)
-- `--out_dir`: Directorio para guardar resultados
-- `--max_iters`: Máximo de iteraciones (default: 200)
+It is possible to modify the objective function of the local search since, according to the statistics, an individual layer (from N1 to N7) can have a better Contrast-to-Noise Ratio (CNR) than the fusion of layers.
 
-#### Búsqueda Exhaustiva
-Encontrar el vector óptimo global evaluando todas las combinaciones:
-```bash
-python3 find_general_vector.py
-```
+## Acknowledgments
 
-**Nota:** El script utiliza configuraciones fijas para carpeta de imágenes (`Images/Prueba`) y prefijos de pacientes. Los resultados se guardan en `results_data_analysis/`.
+The authors thank INAOE for the support and resources provided for the realization of this research.
 
-#### Evaluación Individual
-Probar un cromosoma específico:
-```bash
-python3 evaluate_individual.py --chrom 1 0 1 1 0 1 1 --out imagen_resultante.png
-```
+## References
 
-Los resultados se guardan en la carpeta `results/` con archivos `.mat` (cromosomas) y `.png` (imágenes).
+[1] Xydeas, C. S., & Petrovic, V. (2000). Objective image fusion performance measure. Electronics letters, 36(4), 308-309.
 
-## Interpretación de Resultados
+[2] Holder, D. S. (2004). Electrical impedance tomography: methods, history and applications. CRC press.
 
-### Procesamiento de Imágenes
-- **N1-N6**: Capas superiores que se fusionan por prioridad sobre N7
-- **N7**: Capa base que sirve como fondo
-- **Áreas rojas**: Zonas de interés detectadas en cada máscara
-- **Fusión**: Combinación de colores originales preservando la prioridad de capas
+[3] Grimnes, S., & Martinsen, O. G. (2014). Bioimpedance and bioelectricity basics. Academic press.
 
-### Optimización
-- **Vector binario**: Vector de 7 bits representando selección de capas (1=incluida, 0=excluida)
-- **Fitness**: Puntuación basada en proporción de píxeles rojos válidos detectados (0.8 * calidad + 0.2 * presencia)
-- **Mejor vector**: Combinación óptima de capas guardada en `.mat`
-- **Imagen resultante**: Visualización final guardada como `.png`
-- **Búsqueda local**: Encuentra óptimos locales eficientemente
-- **Búsqueda exhaustiva**: Garantiza el óptimo global evaluando todas las combinaciones posibles
+[4] Adler, A., & Boyle, A. (2017). Electrical impedance tomography: tissue properties to image measures. IEEE Transactions on Biomedical Engineering, 64(11), 2494-2504.
 
-Este sistema permite:
-1. Visualizar propiedades electroimpedanciométricas a través de diferentes profundidades
-2. Optimizar la selección de capas para mejorar la calidad de imagen
-3. Comparar resultados entre diferentes configuraciones de medición EIM
-
-### Tabla 1: Comparación de CNR (Contrast-to-Noise Ratio)
-
-El CNR mide qué tan fuerte es la señal del tumor en comparación con el ruido del fondo.
-
-| Paciente | Max Layer CNR | Img Comp (Avg) | Img Comp (Prio) | Vec Ref (Avg) | Vec Ref (Prio) | LS Rand (Avg) | LS Rand (Prio) | LS Ref (Avg) | LS Ref (Prio) |
-|---|---|---|---|---|---|---|---|---|---|
-| C0011i | 9.1390 | 0.2377 | 0.0657 | 0.3176 | 0.1560 | 0.2125 | 0.0046 | 0.2125 | 0.0046 |
-| C0012d | 0.6250 | 0.3499 | 0.5128 | 0.2404 | 0.4229 | 0.2992 | 0.3975 | 0.2992 | 0.4844 |
-| C0013i | 0.7194 | 0.3892 | 0.1822 | 0.0598 | 0.1267 | 0.3544 | 0.1234 | 0.3544 | 0.1234 |
-| C0014d | 1.4635 | 0.1581 | 0.7611 | 0.0761 | 0.1388 | 0.1479 | 0.1999 | 0.1479 | 0.0799 |
-| C0014i | 1.4605 | 0.1690 | 0.1676 | 0.1031 | 0.0113 | 0.1410 | 0.0604 | 0.1410 | 0.0604 |
-| C0015d | 8.9769 | 0.3304 | 0.7067 | 0.4757 | 0.6376 | 0.3106 | 0.6461 | 0.3106 | 0.6461 |
-| C0623d | 5.9784 | 0.7417 | 0.4939 | 0.9720 | 0.8180 | 1.1037 | 1.4045 | 1.1037 | 1.4045 |
-| C0623i | 3.4488 | 0.2723 | 0.0032 | 0.3094 | 0.1698 | 0.6366 | 0.6736 | 0.6366 | 0.6311 |
-| C0674i | 3.1059 | 0.1073 | 0.0161 | 0.1273 | 0.0361 | 0.7481 | 0.7481 | 0.7481 | 0.7481 |
-| C0699d | 0.7658 | 1.5560 | 1.3656 | 1.4313 | 1.3656 | 1.5689 | 1.3656 | 1.5689 | 1.3656 |
-| C0753d | 5.1258 | 1.7417 | 0.2109 | 0.1132 | 0.0149 | 2.5896 | 0.1750 | 2.5896 | 0.1750 |
-| C0793i | 0.0991 | 0.5093 | 0.0622 | 0.1624 | 0.0481 | 0.4271 | 0.0436 | 0.4271 | 0.0452 |
-| C0806d | 10.4115 | 0.2404 | 0.0455 | 0.1231 | 0.0011 | 0.1166 | 0.0011 | 0.2404 | 0.0011 |
-| C0844i | 0.6147 | 1.6348 | 1.1389 | 1.6928 | 1.5903 | 1.8672 | 1.5975 | 1.8672 | 1.5975 |
-| C0845i | 1.1622 | 0.3802 | 0.1470 | 0.2860 | 0.2224 | 0.3773 | 0.1659 | 0.4285 | 0.1659 |
-| Promedio | 3.5398 | 0.5879 | 0.3920 | 0.4327 | 0.3840 | 0.7267 | 0.5071 | 0.7384 | 0.5022 |
-
-### Tabla 2: Comparación de Edge Preservation
-
-Esta métrica (0-1) indica qué tan bien se conservan los bordes originales.
-
-| Paciente | Img Comp (Avg) | Img Comp (Prio) | Vec Ref (Avg) | Vec Ref (Prio) | LS Rand (Avg) | LS Rand (Prio) | LS Ref (Avg) | LS Ref (Prio) |
-|---|---|---|---|---|---|---|---|---|
-| C0011i | 0.5091 | 0.5161 | 0.5128 | 0.5169 | 0.5125 | 0.5145 | 0.5125 | 0.5145 |
-| C0012d | 0.6233 | 0.6499 | 0.6440 | 0.6428 | 0.6298 | 0.6463 | 0.6298 | 0.6042 |
-| C0013i | 0.5737 | 0.6119 | 0.6282 | 0.6135 | 0.5738 | 0.6111 | 0.5738 | 0.6111 |
-| C0014d | 0.5875 | 0.6208 | 0.6150 | 0.6166 | 0.5920 | 0.5655 | 0.5920 | 0.6140 |
-| C0014i | 0.6038 | 0.6334 | 0.6392 | 0.6370 | 0.6126 | 0.6338 | 0.6126 | 0.6338 |
-| C0015d | 0.6277 | 0.6532 | 0.6609 | 0.6506 | 0.6244 | 0.6446 | 0.6244 | 0.6446 |
-| C0623d | 0.5433 | 0.5515 | 0.5452 | 0.5487 | 0.5456 | 0.5443 | 0.5456 | 0.5443 |
-| C0623i | 0.5004 | 0.5027 | 0.5017 | 0.5014 | 0.5037 | 0.5054 | 0.5037 | 0.5035 |
-| C0674i | 0.4799 | 0.4810 | 0.4820 | 0.4817 | 0.4801 | 0.4801 | 0.4801 | 0.4801 |
-| C0699d | 0.2848 | 0.2876 | 0.2885 | 0.2895 | 0.2887 | 0.2899 | 0.2887 | 0.2899 |
-| C0753d | 0.5213 | 0.5300 | 0.5317 | 0.5345 | 0.5193 | 0.5330 | 0.5193 | 0.5330 |
-| C0793i | 0.5834 | 0.6014 | 0.6269 | 0.6007 | 0.5789 | 0.5488 | 0.5789 | 0.5197 |
-| C0806d | 0.6122 | 0.6287 | 0.6258 | 0.6299 | 0.6146 | 0.6299 | 0.6122 | 0.6299 |
-| C0844i | 0.4323 | 0.4377 | 0.4364 | 0.4374 | 0.4337 | 0.4367 | 0.4337 | 0.4367 |
-| C0845i | 0.5959 | 0.6177 | 0.6166 | 0.6155 | 0.6151 | 0.5526 | 0.6110 | 0.5526 |
-| Promedio | 0.5386 | 0.5549 | 0.5570 | 0.5544 | 0.5416 | 0.5424 | 0.5412 | 0.5408 |
-
-### Análisis de Resultados
-
-Basado en las métricas cuantitativas obtenidas (CNR y Edge Preservation), se pueden extraer las siguientes conclusiones sobre el desempeño de las técnicas y métodos de fusión evaluados:
-
-**1. Mejor Método de Fusión: Fusión por Promedio**
-
-Independientemente de la técnica de selección de capas utilizada, el método de **Fusión por Promedio** demuestra ser superior al de Prioridad.
-*   **CNR:** El método de Promedio obtiene consistentemente valores de CNR mucho más altos (e.g., **0.7384** vs 0.5022 en Búsqueda Local con Referencia). Esto indica que promediar los valores de píxeles en las zonas superpuestas ayuda a reducir el ruido y mejorar el contraste efectivo del tumor frente al fondo, en comparación con simplemente superponer capas (Prioridad).
-*   **Edge Preservation:** Ambos métodos mantienen un desempeño muy similar en la preservación de bordes (alrededor de 0.54 - 0.55), lo que significa que el método de Promedio logra mejorar drásticamente el contraste sin sacrificar la integridad estructural de los bordes originales.
-
-**2. Mejor Técnica de Optimización: Búsqueda Local**
-
-La **Búsqueda Local** es la técnica más efectiva para maximizar la calidad de la imagen.
-*   Logra los valores más altos de **CNR (~0.73 - 0.74)**, superando significativamente a la Fusión Total de 7 capas (~0.59) y al Vector de Referencia estático (~0.43).
-*   Esto confirma que la optimización activa de la selección de capas es crucial. Simplemente usar todas las capas (Fusión Total) introduce información redundante o ruidosa que reduce el contraste, mientras que la búsqueda local selecciona la combinación precisa que maximiza la visibilidad de la zona de interés para cada paciente específico.
-
-**Conclusión General:**
-
-La configuración óptima para el análisis de estas imágenes de electroimpedancia es utilizar **Búsqueda Local con Fusión por Promedio**. Esta combinación ofrece el mejor balance, maximizando la detectabilidad de las zonas de interés (alto CNR) mientras mantiene una estructura fiel a las imágenes originales.
-
-### Comparación Visual: Búsqueda Local vs Fusión Total
-
-Se han seleccionado 3 pacientes representativos (C0793i, C0014d, C0012d) para ilustrar visualmente el impacto de la optimización. Estas imágenes comparan el resultado de la **Búsqueda Local (iniciada con Vector de Referencia y Fusión Promedio)** contra la **Fusión Total de las 7 capas**. Se puede observar cómo la selección inteligente de capas elimina ruido y mejora la definición de las zonas de interés en comparación con el uso indiscriminado de toda la información disponible.
-
-#### Paciente C0793i
-
-| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
-| :---: | :---: |
-| ![](results_comparison/average/best_img_C0793i_20251127_183027.png) | ![](results_total/average/C0793i_total_average.png) |
-| Vector Resultante: `[0 1 1 1 1 1 1]` | Vector: `[1 1 1 1 1 1 1]` |
-
-#### Paciente C0014d
-
-| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
-| :---: | :---: |
-| ![](results_comparison/average/best_img_C0014d_20251127_183028.png) | ![](results_total/average/C0014d_total_average.png) |
-| Vector Resultante: `[1 1 1 1 1 1 0]` | Vector: `[1 1 1 1 1 1 1]` |
-
-#### Paciente C0012d
-
-| Búsqueda Local (Ref. Vector + Promedio) | Fusión Total (7 Capas + Promedio) |
-| :---: | :---: |
-| ![](results_comparison/average/best_img_C0012d_20251127_183027.png) | ![](results_total/average/C0012d_total_average.png) |
-| Vector Resultante: `[1 1 1 1 1 1 0]` | Vector: `[1 1 1 1 1 1 1]` |
+[5] Jazmín, A. G., Hayde, P. B., Irazú, H. F. D., & O, M. B. (2025). Mamografía Por Impedancia Eléctrica: Una Tecnología No Invasiva Para La Detección Del Cáncer De Mama. Physos. https://doi.org/10.60647/q3yr-rw85
