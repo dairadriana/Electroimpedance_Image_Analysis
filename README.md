@@ -112,7 +112,7 @@ Las siguientes imágenes comparan el resultado de la **Búsqueda Local (Ref. Vec
 Ejecutar primero para verificar que todas las librerías están instaladas:
 ```bash
 python3 test_installation.py
-
+```
 
 
 ### Ejemplos Visuales de Resultados
