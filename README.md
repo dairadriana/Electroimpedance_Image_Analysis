@@ -128,6 +128,36 @@ Table I summarizes the results obtained (Mean ± Standard Deviation) for the dif
 
 It is observed that the combination of Local Search starting with Reference Vector and Average Fusion (LS Ref Avg) achieves the best performance in CNR (0.7384), significantly outperforming total fusion (0.5879) and priority methods. Edge preservation remains consistent around 0.54−0.55 across all methods, indicating that the improvement in contrast does not sacrifice image structure.
 
+### Qualitative Results
+
+To illustrate the impact of layer selection, the following figures present a detailed breakdown for patients C0753d, C0844i, and C0699d, who obtained some of the best CNR scores. The 7 original individual layers (N1-N7) and the final result of the optimized fusion using Local Search initiated with the Reference Vector are shown. It can be seen how the fused image manages to integrate relevant information, discarding noise present in non-informative layers and improving tumor definition.
+
+#### Patient C0753d
+
+| N1 | N2 | N3 | N4 |
+| :---: | :---: | :---: | :---: |
+| <img src="Images/figures/C0753d_N1_mask.png" width="100%" alt="N1"> | <img src="Images/figures/C0753d_N2_mask.png" width="100%" alt="N2"> | <img src="Images/figures/C0753d_N3_mask.png" width="100%" alt="N3"> | <img src="Images/figures/C0753d_N4_mask.png" width="100%" alt="N4"> |
+| **N5** | **N6** | **N7** | **Fused** |
+| <img src="Images/figures/C0753d_N5_mask.png" width="100%" alt="N5"> | <img src="Images/figures/C0753d_N6_mask.png" width="100%" alt="N6"> | <img src="Images/figures/C0753d_N7_mask.png" width="100%" alt="N7"> | <img src="Images/figures/best_img_C0753d_20251127_183028.png" width="100%" alt="Fused"> |
+
+#### Patient C0844i
+
+| N1 | N2 | N3 | N4 |
+| :---: | :---: | :---: | :---: |
+| <img src="Images/figures/C0844i_N1_mask.png" width="100%" alt="N1"> | <img src="Images/figures/C0844i_N2_mask.png" width="100%" alt="N2"> | <img src="Images/figures/C0844i_N3_mask.png" width="100%" alt="N3"> | <img src="Images/figures/C0844i_N4_mask.png" width="100%" alt="N4"> |
+| **N5** | **N6** | **N7** | **Fused** |
+| <img src="Images/figures/C0844i_N5_mask.png" width="100%" alt="N5"> | <img src="Images/figures/C0844i_N6_mask.png" width="100%" alt="N6"> | <img src="Images/figures/C0844i_N7_mask.png" width="100%" alt="N7"> | <img src="Images/figures/best_img_C0844i_20251127_183026.png" width="100%" alt="Fused"> |
+
+#### Patient C0699d
+
+| N1 | N2 | N3 | N4 |
+| :---: | :---: | :---: | :---: |
+| <img src="Images/figures/C0699d_N1_mask.png" width="100%" alt="N1"> | <img src="Images/figures/C0699d_N2_mask.png" width="100%" alt="N2"> | <img src="Images/figures/C0699d_N3_mask.png" width="100%" alt="N3"> | <img src="Images/figures/C0699d_N4_mask.png" width="100%" alt="N4"> |
+| **N5** | **N6** | **N7** | **Fused** |
+| <img src="Images/figures/C0699d_N5_mask.png" width="100%" alt="N5"> | <img src="Images/figures/C0699d_N6_mask.png" width="100%" alt="N6"> | <img src="Images/figures/C0699d_N7_mask.png" width="100%" alt="N7"> | <img src="Images/figures/best_img_C0699d_20251127_183027.png" width="100%" alt="Fused"> |
+
+The optimized images show a clear reduction in noise and better definition of the region of interest compared to individual layers, validating the effectiveness of the proposed method.
+
 
 ## Conclusions
 
@@ -137,9 +167,6 @@ As future work, the exploration of alternative color spaces, such as HSL (Hue, S
 
 It is possible to modify the objective function of the local search since, according to the statistics, an individual layer (from N1 to N7) can have a better Contrast-to-Noise Ratio (CNR) than the fusion of layers.
 
-## Acknowledgments
-
-The authors thank INAOE for the support and resources provided for the realization of this research.
 
 ## References
 
