@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-compare_fusion_methods.py
+Compares the two fusion methods (priority vs average) by running local search
+on the 15 validation patients with both methods.
 
-Compara los dos métodos de fusión (prioridad vs promedio) ejecutando búsqueda local
-en los 15 pacientes de validación con ambos métodos.
-
-Resultados se guardan en:
+Results are saved to:
 - results_comparison/priority/
 - results_comparison/average/
 """
@@ -17,16 +15,13 @@ import numpy as np
 import time
 from datetime import datetime
 
-# Importar ambas funciones de fusión
 from objective_function_priority import objective_function_priority
 from objective_function import objective_function
-
-# Importar utilidades
 from utils_matlab_io import save_chromosome_mat, load_chromosome_mat
 
 
 def get_all_prefixes(image_folder):
-    """Scans the image_folder to find all unique patient prefixes."""
+    # Scans the image_folder to find all unique patient prefixes
     prefixes = set()
     search_path = os.path.join(image_folder, '*', '*.bmp')
     files = glob.glob(search_path)
@@ -41,7 +36,7 @@ def get_all_prefixes(image_folder):
 
 
 def get_validation_patients(image_folder):
-    """Returns the 15 validation patients using the same logic as main.py."""
+    # Returns the 15 validation patients using the same logic as main.py
     all_prefixes = get_all_prefixes(image_folder)
     total_patients = len(all_prefixes)
     
@@ -68,22 +63,20 @@ def find_patient_folder(base_folder, prefix):
 
 def single_swap_custom(chromosome, image_folder, prefix, objective_func, time_limit=1800):
     """
-    Búsqueda local con función objetivo personalizable.
-    
+    Local search
     Args:
-        chromosome: Vector inicial
-        image_folder: Carpeta de imágenes
-        prefix: Prefijo del paciente
-        objective_func: Función objetivo a usar (priority o average)
-        time_limit: Límite de tiempo en segundos
+        chromosome: Initial vector
+        image_folder: Image folder
+        prefix: Patient prefix
+        objective_func: Objective function to use (priority or average)
+        time_limit: Time limit in seconds
     """
     start_ls = time.time()
     
-    # Lo mejor hasta ahora
+    # Best so far
     x_best = chromosome.copy()
     f_best, _ = objective_func(x_best, image_folder=image_folder, prefix=prefix)
 
-    # Bandera
     mejora = True
     n = len(chromosome)
     indices = random.sample(range(n), n)
@@ -113,23 +106,21 @@ def single_swap_custom(chromosome, image_folder, prefix, objective_func, time_li
 
 
 def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
-    """
-    Ejecuta la comparación completa entre ambos métodos de fusión.
-    """
+   
     print("=" * 80)
     print("FUSION METHOD COMPARISON: Priority vs Average")
     print("=" * 80)
     
-    # Cargar vector inicial
+    # Load initial vector
     initial_chrom = load_chromosome_mat(initial_vector_path)
     print(f"\nInitial Vector: {initial_chrom}")
     print(f"Time Limit per Patient: {time_limit}s")
     
-    # Obtener pacientes de validación
+    # Get validation patients
     val_patients = get_validation_patients(image_folder)
     print(f"\nValidation Patients ({len(val_patients)}): {val_patients}\n")
     
-    # Crear directorios de salida
+    # Output directories
     priority_dir = os.path.join(out_base_dir, 'priority')
     average_dir = os.path.join(out_base_dir, 'average')
     os.makedirs(priority_dir, exist_ok=True)
@@ -142,7 +133,6 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
         print(f"[{i}/{len(val_patients)}] Processing patient: {patient}")
         print(f"{'=' * 80}")
         
-        # Encontrar carpeta del paciente
         patient_folder = find_patient_folder(image_folder, patient)
         if patient_folder is None:
             print(f"ERROR: Could not find folder for patient {patient}")
@@ -150,7 +140,7 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
             
         print(f"Located in: {patient_folder}")
         
-        # ========== PRIORITY FUSION ==========
+        # PRIORITY FUSION
         print(f"\n--- Running with PRIORITY fusion ---")
         start_time = time.time()
         
@@ -164,7 +154,6 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
         
         priority_time = time.time() - start_time
         
-        # Guardar resultados priority
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         chrom_path_p = os.path.join(priority_dir, f'best_chrom_{patient}_{timestamp}.mat')
         img_path_p = os.path.join(priority_dir, f'best_img_{patient}_{timestamp}.png')
@@ -176,7 +165,7 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
         print(f"Priority - Fitness: {fitness_priority:.6f}, Time: {priority_time:.2f}s")
         print(f"Priority - Chromosome: {best_priority}")
         
-        # ========== AVERAGE FUSION ==========
+        # AVERAGE FUSION
         print(f"\n--- Running with AVERAGE fusion ---")
         start_time = time.time()
         
@@ -190,7 +179,6 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
         
         average_time = time.time() - start_time
         
-        # Guardar resultados average
         chrom_path_a = os.path.join(average_dir, f'best_chrom_{patient}_{timestamp}.mat')
         img_path_a = os.path.join(average_dir, f'best_img_{patient}_{timestamp}.png')
         
@@ -201,7 +189,6 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
         print(f"Average - Fitness: {fitness_average:.6f}, Time: {average_time:.2f}s")
         print(f"Average - Chromosome: {best_average}")
         
-        # Comparación
         diff = fitness_priority - fitness_average
         winner = "PRIORITY" if diff > 0 else ("AVERAGE" if diff < 0 else "TIE")
         print(f"\n>>> Winner: {winner} (Δ = {diff:+.6f})")
@@ -217,7 +204,6 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
             'winner': winner
         })
     
-    # ========== GENERAR RESUMEN ==========
     print(f"\n{'=' * 80}")
     print("COMPARISON SUMMARY")
     print(f"{'=' * 80}\n")
@@ -254,7 +240,7 @@ def run_comparison(image_folder, initial_vector_path, time_limit, out_base_dir):
             else:
                 ties += 1
         
-        # Estadísticas
+        # Statistics
         fitness_p = [r['fitness_priority'] for r in results]
         fitness_a = [r['fitness_average'] for r in results]
         

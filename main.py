@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-main.py
-
 Orchestrates the local search on all 15 validation patients.
 Uses the same patient split logic as find_general_vector.py (seed 42).
 Calls local_search.py for each patient.
@@ -34,9 +32,7 @@ def get_all_prefixes(image_folder):
 
 
 def get_validation_patients(image_folder):
-    """
-    Returns the 15 validation patients using the same logic as find_general_vector.py.
-    """
+    # Returns the 15 validation patients using the same logic as find_general_vector.py.
     all_prefixes = get_all_prefixes(image_folder)
     total_patients = len(all_prefixes)
     

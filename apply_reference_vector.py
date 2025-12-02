@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-apply_reference_vector.py
+Apply the general reference vector directly to the 15 validation patients
+without local search, to compare the baseline fitness of the general vector.
 
-Aplica el vector de referencia (general) directamente a los 15 pacientes de validación
-SIN búsqueda local, para comparar el fitness base del vector general.
-
-Resultados se guardan en:
+Results are saved to:
 - results_reference_vector/priority/
 - results_reference_vector/average/
 """
@@ -16,16 +14,13 @@ import random
 import numpy as np
 from datetime import datetime
 
-# Importar ambas funciones de fusión
 from objective_function_priority import objective_function_priority
 from objective_function import objective_function
-
-# Importar utilidades
 from utils_matlab_io import save_chromosome_mat, load_chromosome_mat
 
 
 def get_all_prefixes(image_folder):
-    """Scans the image_folder to find all unique patient prefixes."""
+    # Scans the image_folder to find all unique patient prefixes.
     prefixes = set()
     search_path = os.path.join(image_folder, '*', '*.bmp')
     files = glob.glob(search_path)
@@ -40,7 +35,7 @@ def get_all_prefixes(image_folder):
 
 
 def get_validation_patients(image_folder):
-    """Returns the 15 validation patients using the same logic as main.py."""
+    # Returns the 15 validation patients using the same logic as main.py.
     all_prefixes = get_all_prefixes(image_folder)
     total_patients = len(all_prefixes)
     
@@ -66,23 +61,19 @@ def find_patient_folder(base_folder, prefix):
 
 
 def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
-    """
-    Aplica el vector de referencia directamente a todos los pacientes de validación
-    SIN búsqueda local.
-    """
     print("=" * 80)
     print("APPLYING REFERENCE VECTOR (NO LOCAL SEARCH)")
     print("=" * 80)
     
-    # Cargar vector de referencia
+    # Load reference vector
     reference_chrom = load_chromosome_mat(reference_vector_path)
     print(f"\nReference Vector: {reference_chrom}")
     
-    # Obtener pacientes de validación
+    # Get validation patients
     val_patients = get_validation_patients(image_folder)
     print(f"\nValidation Patients ({len(val_patients)}): {val_patients}\n")
     
-    # Crear directorios de salida
+    # Output directories
     priority_dir = os.path.join(out_base_dir, 'priority')
     average_dir = os.path.join(out_base_dir, 'average')
     os.makedirs(priority_dir, exist_ok=True)
@@ -95,7 +86,6 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
         print(f"[{i}/{len(val_patients)}] Processing patient: {patient}")
         print(f"{'=' * 80}")
         
-        # Encontrar carpeta del paciente
         patient_folder = find_patient_folder(image_folder, patient)
         if patient_folder is None:
             print(f"ERROR: Could not find folder for patient {patient}")
@@ -103,7 +93,7 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
             
         print(f"Located in: {patient_folder}")
         
-        # ========== PRIORITY FUSION ==========
+        # PRIORITY FUSION 
         print(f"\n--- Applying with PRIORITY fusion ---")
         
         fitness_priority, img_priority = objective_function_priority(
@@ -112,7 +102,6 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
             prefix=patient
         )
         
-        # Guardar resultados priority
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         chrom_path_p = os.path.join(priority_dir, f'ref_chrom_{patient}_{timestamp}.mat')
         img_path_p = os.path.join(priority_dir, f'ref_img_{patient}_{timestamp}.png')
@@ -123,7 +112,7 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
         
         print(f"Priority - Fitness: {fitness_priority:.6f}")
         
-        # ========== AVERAGE FUSION ==========
+        # AVERAGE FUSION 
         print(f"\n--- Applying with AVERAGE fusion ---")
         
         fitness_average, img_average = objective_function(
@@ -132,7 +121,6 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
             prefix=patient
         )
         
-        # Guardar resultados average
         chrom_path_a = os.path.join(average_dir, f'ref_chrom_{patient}_{timestamp}.mat')
         img_path_a = os.path.join(average_dir, f'ref_img_{patient}_{timestamp}.png')
         
@@ -142,7 +130,6 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
         
         print(f"Average - Fitness: {fitness_average:.6f}")
         
-        # Comparación
         diff = fitness_priority - fitness_average
         winner = "PRIORITY" if diff > 0 else ("AVERAGE" if diff < 0 else "TIE")
         print(f"\n>>> Winner: {winner} (Δ = {diff:+.6f})")
@@ -154,7 +141,6 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
             'winner': winner
         })
     
-    # ========== GENERAR RESUMEN ==========
     print(f"\n{'=' * 80}")
     print("SUMMARY")
     print(f"{'=' * 80}\n")
@@ -189,7 +175,7 @@ def apply_reference_vector(image_folder, reference_vector_path, out_base_dir):
             else:
                 ties += 1
         
-        # Estadísticas
+        # Statistics
         fitness_p = [r['fitness_priority'] for r in results]
         fitness_a = [r['fitness_average'] for r in results]
         

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-objective_function.py
+Implements evaluate_individual in pure Python, replicating the logic of evaluate_individual_matlab.m
+without relying on MATLAB.
 
-Implementa evaluate_individual en Python puro, replicando la lógica de evaluate_individual_matlab.m
-sin depender de MATLAB.
-
-Usa OpenCV para leer imágenes, scikit-image para análisis de regiones, etc.
+Uses OpenCV to read images, scikit-image for region analysis, etc.
 """
 
 import os
@@ -14,48 +12,36 @@ import cv2
 
 def red_detection(img, threshold=0.96):
     """
-    Detecta áreas rojas en una imagen RGB [0,1].
-    Replicando redDetection.m
+    Detects red areas in an RGB image [0,1].
+    Replicating redDetection.m
     """
     red_channel = img[:, :, 0]
-    blue_channel = img[:, :, 2]  # OpenCV es BGR, así que blue es 2
+    blue_channel = img[:, :, 2]  # OpenCV is BGR, so blue is 2
 
-    # Equalizar histograma en rojo
+    # Equalize histogram in red
     red_uint8 = (red_channel * 255).astype(np.uint8)
     red_eq = cv2.equalizeHist(red_uint8) / 255.0
 
     red_areas = red_eq > threshold
 
-    # Eliminar fondo negro
+    # Remove black background
     background_mask = (red_channel < 0.05) & (blue_channel < 0.05)
     red_areas[background_mask] = False
 
     return red_areas.astype(bool)
 
 def objective_function(chromosome, image_folder, prefix, save_path=None):
-    """
-    Evalúa un cromosoma en Python puro.
-
-    Entradas:
-    - chromosome: np.array de 7 elementos 0/1
-    - image_folder: str, carpeta con imágenes
-    - prefix: str, prefijo (ej 'C0683d')
-    - save_path: str opcional, guardar imagen
-
-    Salidas:
-    - fitness: float
-    - img_combinada: np.array RGB [0,1]
-    """
+  
     chromosome = np.asarray(chromosome, dtype=int)
     if chromosome.size != 7:
         raise ValueError('El cromosoma debe tener exactamente 7 elementos')
 
-    # Si todo ceros, seleccionar uno aleatoriamente
+    # If all zeros, select one randomly
     if chromosome.sum() == 0:
         idx = np.random.randint(0, 7)
         chromosome[idx] = 1
 
-    # Cargar imagen base N7
+    # Load base image N7
     base_path = os.path.join(image_folder, f'{prefix}_N7_mask.bmp')
     if not os.path.exists(base_path):
         raise FileNotFoundError(f'Imagen base N7 no encontrada: {base_path}')
@@ -70,7 +56,7 @@ def objective_function(chromosome, image_folder, prefix, save_path=None):
     
     hay_capas = False
     
-    # Procesar capas seleccionadas
+    # Process selected layers
     for i in range(7):
         if chromosome[i] == 0:
             continue
@@ -97,7 +83,7 @@ def objective_function(chromosome, image_folder, prefix, save_path=None):
             cv2.imwrite(save_path, (img_combinada * 255).astype(np.uint8))
         return fitness, img_combinada
     
-    # Fusionar máscaras
+    # Merge masks
     final_mask = np.logical_or.reduce(masks_list)
     
     fusion_color = np.zeros((img_size[0], img_size[1], 3), dtype=np.float32)
@@ -107,36 +93,35 @@ def objective_function(chromosome, image_folder, prefix, save_path=None):
         fusion_color += img * mask.astype(float)[:, :, np.newaxis]
         count += mask.astype(int)
     
-    # Promediar colores donde hay superposición
+    # Average colors where there is overlap
     valid = count > 0
     fusion_color[valid] /= count[valid, np.newaxis]
     
-    # Combinar con fondo
+    # Combine with background
     img_combinada = img_ref.copy()
     img_combinada[final_mask] = fusion_color[final_mask]
 
-    # Calcular fitness
     total_detected = final_mask.sum()
     if total_detected == 0:
         fitness = 0.0
     else:
-        # Extraer valores RGB de píxeles activos
+        # Extract RGB values of active pixels
         pixels = img_combinada[final_mask]  # (n_pixels, 3)
         red = pixels[:, 0]
         green = pixels[:, 1]
         blue = pixels[:, 2]
 
-        # Píxeles válidos: rojo entre 60/255 y 1, y rojo > verde y rojo > azul
+        # Valid pixels: red between 60/255 and 1, and red > green and red > blue
         valid = (red >= 60/255) & (red > green) & (red > blue)
         valid_count = valid.sum()
 
-        # Puntaje de calidad
+        # Quality score
         quality = valid_count / total_detected
 
-        # Puntaje de presencia
+        # Presence score
         presence = valid_count / (valid_count + 50)
 
-        # Fitness ponderado
+        # Weighted fitness
         fitness = 0.8 * quality + 0.2 * presence
 
     if save_path:
@@ -146,7 +131,7 @@ def objective_function(chromosome, image_folder, prefix, save_path=None):
     return fitness, img_combinada
 
 if __name__ == '__main__':
-    # Prueba
+    # Test
     chrom = np.array([1, 0, 1, 1, 0, 0, 0])
     f, img = objective_function(chrom, 'Images/Prueba', 'C0683d')
     print(f'Fitness: {f}')

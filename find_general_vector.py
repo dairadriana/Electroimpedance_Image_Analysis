@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
-find_general_vector.py
-
-Realiza una búsqueda exhaustiva (fuerza bruta) sobre las 127 combinaciones posibles.
-
-Salidas en 'results_data_analysis/':
-1. SUMMARY_AVERAGES_...txt: Promedio de fitness de todos los vectores (ordenado).
-2. DETAILS_{paciente}_...txt: 10 archivos con el desempeño de todos los vectores para cada paciente.
-3. BEST_GLOBAL_...: Archivos .mat y .png del vector ganador global (usando criterio de parsimonia).
+Perform an exhaustive search (brute force) on the 127 possible combinations.
+Outputs in ‘results_data_analysis/’:
+1. SUMMARY_AVERAGES_...txt: Average fitness of all vectors (sorted).
+2. DETAILS_{patient}_...txt: 10 files with the performance of all vectors for each patient.
+3. BEST_GLOBAL_...: .mat and .png files of the global winning vector (using parsimony criteria).
 """
 
 import os
@@ -69,9 +66,9 @@ def main():
 
     best_avg_fitness = float('-inf')
     best_chromosome = None
-    all_chromosomes = []  # Lista de (avg_fitness, chrom, fitnesses)
+    all_chromosomes = []  
 
-    total_combinations = 2**7 - 1  # 127
+    total_combinations = 2**7 - 1  
     count = 0
 
     start_time = time.time()
@@ -87,20 +84,6 @@ def main():
         fitnesses = []
         for prefix in train_prefixes:
             try:
-                # We need to find where the file is located since we have subdirectories
-                # The objective_function might need adjustment if it expects a specific path structure
-                # But based on previous run, it seems to handle 'Images/Prueba' and prefix 'C0011d'
-                # Here we pass 'Images' as base, but objective_function likely searches or we need to pass the specific subfolder?
-                # Let's assume objective_function handles the search or we need to be careful.
-                # Looking at previous code: image_folder = 'Images/Prueba'.
-                # Now we have multiple subfolders.
-                # Let's try passing 'Images' and hope objective_function searches recursively or we might need to fix objective_function too.
-                # Wait, the previous code had 'Images/Prueba'. 
-                # If objective_function expects the direct parent folder of the images, we might have an issue if images are in different subfolders.
-                # Let's check objective_function in a moment. For now, let's assume we can pass the base folder or we need to find the specific folder for each prefix.
-                
-                # To be safe, let's find the folder for this prefix
-                # We can do this efficiently.
                 
                 f, _ = evaluate_individual(chrom, image_folder=image_folder, prefix=prefix)
                 fitnesses.append(f)
@@ -118,7 +101,6 @@ def main():
                          except:
                              continue
                 if not found:
-                    # print(f"Error evaluating {chrom} on {prefix}: {e}")
                     pass
                 continue
 
@@ -189,13 +171,9 @@ def main():
             f.write(f'{i}. Average Fitness: {avg_f:.6f}, Chromosome: {chrom.tolist()}\n')
     print(f'Summary saved: {summary_path}')
 
-    # Save DETAILS for each prefix
-    # Note: fitnesses list in all_chromosomes corresponds to train_prefixes order
+
     for idx, prefix in enumerate(train_prefixes):
         details_path = os.path.join(out_dir, f'DETAILS_{prefix}_{timestamp}.txt')
-        # Sort by fitness for this prefix descending
-        # We need to be careful if some chromosomes didn't evaluate on all patients (though they should have)
-        # Assuming all evaluated or we handle index out of bounds
         
         valid_entries = []
         for avg_f, chrom, fits in all_chromosomes:
@@ -208,7 +186,7 @@ def main():
             f.write(f'Details for patient {prefix}, combinations ordered by fitness (best to worst):\n\n')
             for i, (avg_f, chrom, fitnesses) in enumerate(sorted_for_prefix, 1):
                 f.write(f'{i}. Fitness: {fitnesses[idx]:.6f}, Average: {avg_f:.6f}, Chromosome: {chrom.tolist()}\n')
-        # print(f'Details for {prefix} saved: {details_path}') # Commented out to reduce noise
+        # print(f'Details for {prefix} saved: {details_path}')
     print(f"Saved individual detail files for all {len(train_prefixes)} training patients.")
 
     if best_chromosome is not None:

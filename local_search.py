@@ -29,27 +29,19 @@ from objective_function import objective_function
 from utils_matlab_io import save_chromosome_mat, load_chromosome_mat
 
 
-# def random_initial_chromosome() -> np.ndarray:
-#     chrom = np.random.randint(0, 2, size=(7,), dtype=int)
-#     if chrom.sum() == 0:
-#         chrom[np.random.randint(0, 7)] = 1
-#     return chrom
-
-
 def single_swap(chromosome: np.ndarray, image_folder: str, prefix: str, time_limit: int = 1800):
     """
-    Implementa una búsqueda local mediante flips de un solo bit en orden aleatorio.
-    Comienza con el cromosoma dado, evalúa flips individuales, acepta mejoras y reinicia
-    el orden de exploración. Continúa hasta no encontrar mejoras o agotar el tiempo límite.
-    Devuelve el mejor cromosoma encontrado y su fitness.
+    Implements a local search using single-bit flips in random order.
+    Starts with the given chromosome, evaluates individual flips, accepts improvements, and resets
+    the search order. Continues until no improvements are found or the time limit is reached.
+    Returns the best chromosome found and its fitness.
     """
     start_ls = time.time()
     
-    # Lo mejor hasta ahora
+    # Best so far
     x_best = chromosome[:]
     f_best, _ = objective_function(x_best, image_folder=image_folder, prefix=prefix)
 
-    # Bandera
     mejora = True
     n = len(chromosome)
     indices = random.sample(range(n), n)  # Permutación
@@ -59,25 +51,24 @@ def single_swap(chromosome: np.ndarray, image_folder: str, prefix: str, time_lim
 
         for i in indices:
             x_temp = x_best[:]
-            x_temp[i] = 1 - x_best[i]  # Cambio 0 <-> 1
+            x_temp[i] = 1 - x_best[i]  # Swap 0 <-> 1
 
-            # Verificar factibilidad (al menos un 1)
+            # Check feasibility (at least one 1)
             if np.sum(x_temp) > 0:
-                # Comparar soluciones y decidir si mantener el cambio
+                # Compare solutions and decide whether to keep the change
                 if time.time() - start_ls > time_limit:
-                    break  # Si antes de calcular el error ya se pasó de tiempo romper while
+                    break  # If time limit exceeded before calculating error, break while
 
                 f_temp, _ = objective_function(x_temp, image_folder=image_folder, prefix=prefix)
                 
                 if f_temp > f_best:
                     x_best = x_temp[:]
                     f_best = f_temp
-                    mejora = True  # Hubo mejora, seguimos iterando
+                    mejora = True  # There was an improvement, continue iterating
 
-                    # Cambio aleatorio circular sobre la nueva solución
+                    # Circular random change on the new solution
                     indices = random.sample(list(range(i + 1, n)) + list(range(0, i)), n - 1)
-                    break  # Reiniciamos la iteración con la nueva mejor solución
-
+                    break  # Restart iteration with the new best solution
     return x_best, f_best
 
 
@@ -85,10 +76,10 @@ def local_search(image_folder: str, prefix: str, out_dir: str, initial_vector_pa
     if not os.path.exists(out_dir):
         os.makedirs(out_dir, exist_ok=True)
 
-    # Inicializar
+    # Initialize
     """
-    Ejecuta la búsqueda local con un cromosoma inicial cargado desde archivo, guarda el resultado
-    en archivos .mat y .png, e imprime el mejor cromosoma y su fitness.
+    Runs the local search with an initial chromosome loaded from a file, saves the result
+    in .mat and .png files, and prints the best chromosome and its fitness.
     """
     initial_chrom = load_chromosome_mat(initial_vector_path)
     print(f'Initial: {initial_chrom}')
@@ -99,9 +90,7 @@ def local_search(image_folder: str, prefix: str, out_dir: str, initial_vector_pa
     chrom_path = os.path.join(out_dir, f'best_chrom_{prefix}_{timestamp}.mat')
     img_path = os.path.join(out_dir, f'best_img_{prefix}_{timestamp}.png')
 
-    # Guardar cromosoma y la imagen resultante final
     save_chromosome_mat(best, chrom_path)
-    # Guardamos la imagen final con objective_function (pedimos la imagen)
     final_score, final_img = objective_function(best, image_folder=image_folder, prefix=prefix, save_path=img_path)
 
     print('\n=== RESULTADO FINAL ===')
