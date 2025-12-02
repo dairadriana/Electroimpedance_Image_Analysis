@@ -1,11 +1,11 @@
 # Optimization of Electroimpedance Image Fusion using Local Search and Layer Analysis
 
-[Ashley Dafne Aguilar Salinas](https://github.com/AshleyDafneAguilar)
+[Ashley Dafne Aguilar Salinas](https://github.com/AshleyDafneAguilar)    
 Computer Science Department, INAOE  
 Tonantzintla, Puebla, México  
 ashleyd.aguilars@inaoep.mx  
 
-[Daira Adriana Chavarría Rodríguez](https://github.com/dairadriana)  
+[Daira Adriana Chavarría Rodríguez](https://github.com/dairadriana)      
 Computer Science Department, INAOE  
 Tonantzintla, Puebla, México  
 daira.chavarriar@inaoep.mx  
